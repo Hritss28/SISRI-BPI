@@ -128,6 +128,14 @@
                     Persetujuan Sidang
                 </x-sidebar-dropdown-link>
             </x-sidebar-dropdown>
+            <x-sidebar-dropdown label="Jadwal Ujian" icon="calendar" :active="request()->routeIs('dosen.jadwal-ujian.*')">
+                <x-sidebar-dropdown-link :href="route('dosen.jadwal-ujian.sempro')" :active="request()->routeIs('dosen.jadwal-ujian.sempro')">
+                    Seminar Proposal
+                </x-sidebar-dropdown-link>
+                <x-sidebar-dropdown-link :href="route('dosen.jadwal-ujian.sidang')" :active="request()->routeIs('dosen.jadwal-ujian.sidang')">
+                    Sidang Skripsi
+                </x-sidebar-dropdown-link>
+            </x-sidebar-dropdown>
             <x-sidebar-dropdown label="Nilai" icon="chart" :active="request()->routeIs('dosen.nilai-sempro.*') || request()->routeIs('dosen.nilai-sidang.*')">
                 <x-sidebar-dropdown-link :href="route('dosen.nilai-sempro.index')" :active="request()->routeIs('dosen.nilai-sempro.*')">
                     Nilai Sempro
@@ -202,6 +210,14 @@
                 </x-sidebar-dropdown-link>
                 <x-sidebar-dropdown-link :href="route('dosen.persetujuan-sidang.index', ['jenis' => 'skripsi'])" :active="request()->routeIs('dosen.persetujuan-sidang.*') && request('jenis') === 'skripsi'">
                     Persetujuan Sidang
+                </x-sidebar-dropdown-link>
+            </x-sidebar-dropdown>
+            <x-sidebar-dropdown label="Jadwal Ujian" icon="calendar" :active="request()->routeIs('dosen.jadwal-ujian.*')">
+                <x-sidebar-dropdown-link :href="route('dosen.jadwal-ujian.sempro')" :active="request()->routeIs('dosen.jadwal-ujian.sempro')">
+                    Seminar Proposal
+                </x-sidebar-dropdown-link>
+                <x-sidebar-dropdown-link :href="route('dosen.jadwal-ujian.sidang')" :active="request()->routeIs('dosen.jadwal-ujian.sidang')">
+                    Sidang Skripsi
                 </x-sidebar-dropdown-link>
             </x-sidebar-dropdown>
             <x-sidebar-dropdown label="Nilai" icon="chart" :active="request()->routeIs('dosen.nilai-sempro.*') || request()->routeIs('dosen.nilai-sidang.*')">

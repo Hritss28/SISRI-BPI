@@ -71,7 +71,27 @@ class TopikSkripsi extends Model
     }
 
     /**
-     * Get pembimbing 1.
+     * Get pembimbing 1 relationship (usulan yang diterima dengan urutan 1).
+     */
+    public function usulanPembimbing1()
+    {
+        return $this->hasOne(UsulanPembimbing::class, 'topik_id')
+            ->where('urutan', 1)
+            ->where('status', 'diterima');
+    }
+
+    /**
+     * Get pembimbing 2 relationship (usulan yang diterima dengan urutan 2).
+     */
+    public function usulanPembimbing2()
+    {
+        return $this->hasOne(UsulanPembimbing::class, 'topik_id')
+            ->where('urutan', 2)
+            ->where('status', 'diterima');
+    }
+
+    /**
+     * Get pembimbing 1 (helper method).
      */
     public function pembimbing1()
     {
@@ -79,11 +99,27 @@ class TopikSkripsi extends Model
     }
 
     /**
-     * Get pembimbing 2.
+     * Get pembimbing 2 (helper method).
      */
     public function pembimbing2()
     {
         return $this->usulanPembimbing()->where('urutan', 2)->where('status', 'diterima')->first()?->dosen;
+    }
+
+    /**
+     * Get pembimbing1_id accessor.
+     */
+    public function getPembimbing1IdAttribute()
+    {
+        return $this->usulanPembimbing()->where('urutan', 1)->where('status', 'diterima')->first()?->dosen_id;
+    }
+
+    /**
+     * Get pembimbing2_id accessor.
+     */
+    public function getPembimbing2IdAttribute()
+    {
+        return $this->usulanPembimbing()->where('urutan', 2)->where('status', 'diterima')->first()?->dosen_id;
     }
 
     /**

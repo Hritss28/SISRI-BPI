@@ -24,6 +24,7 @@ use App\Http\Controllers\Dosen\BimbinganController as DosenBimbinganController;
 use App\Http\Controllers\Dosen\NilaiSemproController;
 use App\Http\Controllers\Dosen\NilaiSidangController;
 use App\Http\Controllers\Dosen\PersetujuanSidangController;
+use App\Http\Controllers\Dosen\JadwalUjianController;
 
 // Koordinator Controllers
 use App\Http\Controllers\Koordinator\DashboardController as KoordinatorDashboardController;
@@ -147,6 +148,11 @@ Route::middleware(['auth', 'role:dosen|koordinator'])->prefix('dosen')->name('do
     Route::get('/persetujuan-sidang/{pendaftaran}', [PersetujuanSidangController::class, 'show'])->name('persetujuan-sidang.show');
     Route::post('/persetujuan-sidang/{pendaftaran}/approve', [PersetujuanSidangController::class, 'approve'])->name('persetujuan-sidang.approve');
     Route::post('/persetujuan-sidang/{pendaftaran}/reject', [PersetujuanSidangController::class, 'reject'])->name('persetujuan-sidang.reject');
+    
+    // Jadwal Ujian
+    Route::get('/jadwal-ujian/sempro', [JadwalUjianController::class, 'sempro'])->name('jadwal-ujian.sempro');
+    Route::get('/jadwal-ujian/sidang', [JadwalUjianController::class, 'sidang'])->name('jadwal-ujian.sidang');
+    Route::get('/jadwal-ujian/{pelaksanaan}', [JadwalUjianController::class, 'show'])->name('jadwal-ujian.show');
 });
 
 // ==================== KOORDINATOR ROUTES ====================
