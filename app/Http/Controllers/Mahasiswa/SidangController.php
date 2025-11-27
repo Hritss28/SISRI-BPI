@@ -56,10 +56,21 @@ class SidangController extends Controller
 
         $jenis = $request->get('jenis', 'seminar_proposal');
 
-        // Cek apakah sudah mendaftar untuk jenis sidang ini (yang belum ditolak)
+        // Cek apakah sudah mendaftar untuk jenis sidang ini (yang belum ditolak DAN belum selesai dengan tidak lulus)
         $existingPendaftaran = PendaftaranSidang::where('topik_id', $topik->id)
             ->where('jenis', $jenis)
             ->active() // Hanya cek yang statusnya tidak ditolak
+            ->where(function($query) {
+                // Exclude pendaftaran yang sudah selesai tapi tidak lulus (boleh daftar ulang)
+                $query->whereDoesntHave('pelaksanaanSidang', function($q) {
+                    $q->where('status', 'selesai');
+                })
+                ->orWhereHas('pelaksanaanSidang', function($q) {
+                    // Atau yang selesai tapi LULUS (tidak boleh daftar lagi)
+                    $q->where('status', 'selesai')
+                      ->whereRaw('(SELECT AVG(nilai) FROM nilai WHERE nilai.pelaksanaan_sidang_id = pelaksanaan_sidang.id AND nilai.jenis_nilai = "ujian") >= 55');
+                });
+            })
             ->exists();
 
         if ($existingPendaftaran) {
@@ -71,12 +82,39 @@ class SidangController extends Controller
         if ($jenis === 'sidang_skripsi') {
             $seminarProposal = PendaftaranSidang::where('topik_id', $topik->id)
                 ->where('jenis', 'seminar_proposal')
-                ->whereHas('pelaksanaanSidang.nilai')
+                ->whereHas('pelaksanaanSidang', function($query) {
+                    $query->where('status', 'selesai');
+                })
+                ->with('pelaksanaanSidang.nilai')
                 ->first();
             
-            if (!$seminarProposal) {
+            if (!$seminarProposal || !$seminarProposal->pelaksanaanSidang) {
                 return redirect()->route('mahasiswa.sidang.index')
                     ->with('error', 'Anda belum lulus seminar proposal. Selesaikan seminar proposal terlebih dahulu.');
+            }
+            
+            // Cek apakah nilai lulus (>= C)
+            if (!$seminarProposal->pelaksanaanSidang->isLulus()) {
+                return redirect()->route('mahasiswa.sidang.index')
+                    ->with('error', 'Nilai seminar proposal Anda belum memenuhi syarat (minimal C). Silakan daftar ulang seminar proposal.');
+            }
+        }
+
+        // Jika mendaftar ulang seminar proposal, cek apakah nilai sebelumnya tidak lulus
+        if ($jenis === 'seminar_proposal') {
+            $previousSempro = PendaftaranSidang::where('topik_id', $topik->id)
+                ->where('jenis', 'seminar_proposal')
+                ->whereHas('pelaksanaanSidang', function($query) {
+                    $query->where('status', 'selesai');
+                })
+                ->with('pelaksanaanSidang.nilai')
+                ->latest()
+                ->first();
+            
+            // Jika sudah ada nilai dan sudah lulus, tidak bisa daftar lagi
+            if ($previousSempro && $previousSempro->pelaksanaanSidang && $previousSempro->pelaksanaanSidang->isLulus()) {
+                return redirect()->route('mahasiswa.sidang.index')
+                    ->with('error', 'Anda sudah lulus seminar proposal. Silakan lanjutkan ke sidang skripsi.');
             }
         }
 
@@ -113,10 +151,21 @@ class SidangController extends Controller
                 ->with('error', 'Anda belum memiliki topik yang disetujui.');
         }
 
-        // Cek apakah sudah mendaftar (yang belum ditolak)
+        // Cek apakah sudah mendaftar (yang belum ditolak DAN belum selesai dengan tidak lulus)
         $existingPendaftaran = PendaftaranSidang::where('topik_id', $topik->id)
             ->where('jenis', $request->jenis)
             ->active() // Hanya cek yang statusnya tidak ditolak
+            ->where(function($query) {
+                // Exclude pendaftaran yang sudah selesai tapi tidak lulus (boleh daftar ulang)
+                $query->whereDoesntHave('pelaksanaanSidang', function($q) {
+                    $q->where('status', 'selesai');
+                })
+                ->orWhereHas('pelaksanaanSidang', function($q) {
+                    // Atau yang selesai tapi LULUS (tidak boleh daftar lagi)
+                    $q->where('status', 'selesai')
+                      ->whereRaw('(SELECT AVG(nilai) FROM nilai WHERE nilai.pelaksanaan_sidang_id = pelaksanaan_sidang.id AND nilai.jenis_nilai = "ujian") >= 55');
+                });
+            })
             ->exists();
 
         if ($existingPendaftaran) {
@@ -128,12 +177,39 @@ class SidangController extends Controller
         if ($request->jenis === 'sidang_skripsi') {
             $seminarProposal = PendaftaranSidang::where('topik_id', $topik->id)
                 ->where('jenis', 'seminar_proposal')
-                ->whereHas('pelaksanaanSidang.nilai')
+                ->whereHas('pelaksanaanSidang', function($query) {
+                    $query->where('status', 'selesai');
+                })
+                ->with('pelaksanaanSidang.nilai')
                 ->first();
             
-            if (!$seminarProposal) {
+            if (!$seminarProposal || !$seminarProposal->pelaksanaanSidang) {
                 return redirect()->route('mahasiswa.sidang.index')
                     ->with('error', 'Anda belum lulus seminar proposal. Selesaikan seminar proposal terlebih dahulu.');
+            }
+            
+            // Cek apakah nilai lulus (>= C)
+            if (!$seminarProposal->pelaksanaanSidang->isLulus()) {
+                return redirect()->route('mahasiswa.sidang.index')
+                    ->with('error', 'Nilai seminar proposal Anda belum memenuhi syarat (minimal C). Silakan daftar ulang seminar proposal.');
+            }
+        }
+
+        // Jika mendaftar ulang seminar proposal, cek apakah nilai sebelumnya tidak lulus
+        if ($request->jenis === 'seminar_proposal') {
+            $previousSempro = PendaftaranSidang::where('topik_id', $topik->id)
+                ->where('jenis', 'seminar_proposal')
+                ->whereHas('pelaksanaanSidang', function($query) {
+                    $query->where('status', 'selesai');
+                })
+                ->with('pelaksanaanSidang.nilai')
+                ->latest()
+                ->first();
+            
+            // Jika sudah ada nilai dan sudah lulus, tidak bisa daftar lagi
+            if ($previousSempro && $previousSempro->pelaksanaanSidang && $previousSempro->pelaksanaanSidang->isLulus()) {
+                return redirect()->route('mahasiswa.sidang.index')
+                    ->with('error', 'Anda sudah lulus seminar proposal. Silakan lanjutkan ke sidang skripsi.');
             }
         }
 
@@ -141,6 +217,33 @@ class SidangController extends Controller
         $jadwal = JadwalSidang::find($request->jadwal_sidang_id);
         if (!$jadwal->isOpen()) {
             return back()->with('error', 'Jadwal pendaftaran sudah ditutup.');
+        }
+
+        // Cek apakah ada pendaftaran yang tidak lulus sebelumnya untuk di-update
+        $failedPendaftaran = PendaftaranSidang::where('topik_id', $topik->id)
+            ->where('jenis', $request->jenis)
+            ->whereHas('pelaksanaanSidang', function($query) {
+                $query->where('status', 'selesai');
+            })
+            ->with('pelaksanaanSidang')
+            ->latest()
+            ->first();
+
+        if ($failedPendaftaran && $failedPendaftaran->pelaksanaanSidang && !$failedPendaftaran->pelaksanaanSidang->isLulus()) {
+            // Update pendaftaran yang tidak lulus, reset status persetujuan dan hapus pelaksanaan lama
+            $failedPendaftaran->pelaksanaanSidang->delete(); // Hapus pelaksanaan sidang lama
+            $failedPendaftaran->update([
+                'jadwal_sidang_id' => $request->jadwal_sidang_id,
+                'status_pembimbing_1' => 'menunggu',
+                'status_pembimbing_2' => 'menunggu',
+                'status_koordinator' => 'menunggu',
+                'catatan_pembimbing_1' => null,
+                'catatan_pembimbing_2' => null,
+                'catatan_koordinator' => null,
+            ]);
+
+            return redirect()->route('mahasiswa.sidang.index')
+                ->with('success', 'Pendaftaran ulang ' . str_replace('_', ' ', $request->jenis) . ' berhasil diajukan.');
         }
 
         // Cek apakah ada pendaftaran yang ditolak sebelumnya untuk di-update

@@ -240,35 +240,62 @@
                 @if($pendaftaran->pelaksanaanSidang && $pendaftaran->pelaksanaanSidang->nilai->isNotEmpty())
                 @php
                     $nilaiCollection = $pendaftaran->pelaksanaanSidang->nilai;
-                    $totalNilai = $nilaiCollection->avg('nilai');
-                    
-                    // Hitung nilai huruf berdasarkan rata-rata
-                    $nilaiHuruf = match(true) {
-                        $totalNilai >= 85 => 'A',
-                        $totalNilai >= 80 => 'A-',
-                        $totalNilai >= 75 => 'B+',
-                        $totalNilai >= 70 => 'B',
-                        $totalNilai >= 65 => 'B-',
-                        $totalNilai >= 60 => 'C+',
-                        $totalNilai >= 55 => 'C',
-                        $totalNilai >= 50 => 'D',
-                        default => 'E',
-                    };
+                    $totalNilai = $pendaftaran->pelaksanaanSidang->nilai_rata_rata;
+                    $nilaiHuruf = $pendaftaran->pelaksanaanSidang->nilai_huruf;
+                    $isLulus = $pendaftaran->pelaksanaanSidang->isLulus();
+                    $isTidakLulus = $pendaftaran->pelaksanaanSidang->isTidakLulus();
                 @endphp
                 <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div class="px-6 py-4 border-b bg-green-50">
-                        <h3 class="font-semibold text-green-800">Hasil Sidang</h3>
+                    <div class="px-6 py-4 border-b {{ $isLulus ? 'bg-green-50' : 'bg-red-50' }}">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-semibold {{ $isLulus ? 'text-green-800' : 'text-red-800' }}">
+                                Hasil {{ $pendaftaran->jenis === 'seminar_proposal' ? 'Seminar Proposal' : 'Sidang Skripsi' }}
+                            </h3>
+                            @if($isLulus)
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    ✓ Lulus
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    ✗ Tidak Lulus
+                                </span>
+                            @endif
+                        </div>
                     </div>
                     <div class="p-6">
                         <div class="flex items-center justify-center mb-6">
                             <div class="text-center">
-                                <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mb-3">
+                                <div class="w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-3 {{ $isLulus ? 'bg-gradient-to-br from-green-400 to-green-600' : 'bg-gradient-to-br from-red-400 to-red-600' }}">
                                     <span class="text-3xl font-bold text-white">{{ $nilaiHuruf }}</span>
                                 </div>
                                 <p class="text-3xl font-bold text-gray-800">{{ number_format($totalNilai, 2) }}</p>
                                 <p class="text-sm text-gray-500">Nilai Rata-rata</p>
                             </div>
                         </div>
+                        
+                        @if($isTidakLulus)
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                            <div class="flex gap-3">
+                                <svg class="w-6 h-6 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                <div>
+                                    <p class="font-medium text-red-800">Tidak Memenuhi Syarat Kelulusan</p>
+                                    <p class="text-sm text-red-700 mt-1">
+                                        Nilai Anda ({{ $nilaiHuruf }}) di bawah standar minimum kelulusan (C). 
+                                        Silakan daftar ulang {{ $pendaftaran->jenis === 'seminar_proposal' ? 'seminar proposal' : 'sidang skripsi' }} untuk memperbaiki nilai.
+                                    </p>
+                                    <a href="{{ route('mahasiswa.sidang.create', ['jenis' => $pendaftaran->jenis]) }}" 
+                                       class="inline-flex items-center mt-3 px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                        Daftar Ulang
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
                             @foreach($nilaiCollection as $n)

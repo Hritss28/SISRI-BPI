@@ -119,9 +119,12 @@
                     Persetujuan Sidang
                 </x-sidebar-dropdown-link>
             </x-sidebar-dropdown>
-            <x-sidebar-dropdown label="Nilai" icon="chart" :active="request()->routeIs('dosen.nilai.*')">
-                <x-sidebar-dropdown-link :href="route('dosen.nilai.index')" :active="request()->routeIs('dosen.nilai.*')">
-                    Penilaian Sidang
+            <x-sidebar-dropdown label="Nilai" icon="chart" :active="request()->routeIs('dosen.nilai-sempro.*') || request()->routeIs('dosen.nilai-sidang.*')">
+                <x-sidebar-dropdown-link :href="route('dosen.nilai-sempro.index')" :active="request()->routeIs('dosen.nilai-sempro.*')">
+                    Nilai Sempro
+                </x-sidebar-dropdown-link>
+                <x-sidebar-dropdown-link :href="route('dosen.nilai-sidang.index')" :active="request()->routeIs('dosen.nilai-sidang.*')">
+                    Nilai Sidang
                 </x-sidebar-dropdown-link>
             </x-sidebar-dropdown>
         @endif

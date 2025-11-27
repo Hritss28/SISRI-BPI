@@ -95,4 +95,67 @@ class PelaksanaanSidang extends Model
     {
         return $query->where('status', 'selesai');
     }
+
+    /**
+     * Get nilai rata-rata (hanya untuk jenis_nilai = ujian).
+     */
+    public function getNilaiRataRataAttribute(): ?float
+    {
+        $nilaiUjian = $this->nilai()->where('jenis_nilai', 'ujian')->get();
+        if ($nilaiUjian->isEmpty()) {
+            return null;
+        }
+        return $nilaiUjian->avg('nilai');
+    }
+
+    /**
+     * Get nilai huruf dari nilai rata-rata.
+     */
+    public function getNilaiHurufAttribute(): ?string
+    {
+        $nilai = $this->nilai_rata_rata;
+        if ($nilai === null) {
+            return null;
+        }
+        
+        return match(true) {
+            $nilai >= 85 => 'A',
+            $nilai >= 80 => 'A-',
+            $nilai >= 75 => 'B+',
+            $nilai >= 70 => 'B',
+            $nilai >= 65 => 'B-',
+            $nilai >= 60 => 'C+',
+            $nilai >= 55 => 'C',
+            $nilai >= 50 => 'D',
+            default => 'E',
+        };
+    }
+
+    /**
+     * Cek apakah sidang lulus (nilai >= C, tidak D atau E).
+     */
+    public function isLulus(): bool
+    {
+        $nilai = $this->nilai_rata_rata;
+        if ($nilai === null) {
+            return false;
+        }
+        
+        // Lulus jika nilai >= 55 (minimal C)
+        return $nilai >= 55;
+    }
+
+    /**
+     * Cek apakah sidang tidak lulus (nilai D atau E).
+     */
+    public function isTidakLulus(): bool
+    {
+        $nilai = $this->nilai_rata_rata;
+        if ($nilai === null) {
+            return false;
+        }
+        
+        // Tidak lulus jika nilai < 55 (D atau E)
+        return $nilai < 55;
+    }
 }

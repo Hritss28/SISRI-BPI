@@ -20,7 +20,8 @@ use App\Http\Controllers\Mahasiswa\SidangController;
 use App\Http\Controllers\Dosen\DashboardController as DosenDashboardController;
 use App\Http\Controllers\Dosen\ValidasiUsulanController;
 use App\Http\Controllers\Dosen\BimbinganController as DosenBimbinganController;
-use App\Http\Controllers\Dosen\NilaiController;
+use App\Http\Controllers\Dosen\NilaiSemproController;
+use App\Http\Controllers\Dosen\NilaiSidangController;
 use App\Http\Controllers\Dosen\PersetujuanSidangController;
 
 // Koordinator Controllers
@@ -120,11 +121,17 @@ Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->name('dosen.')->grou
     Route::post('/bimbingan/{bimbingan}/respond', [DosenBimbinganController::class, 'respond'])->name('bimbingan.respond');
     Route::get('/bimbingan/mahasiswa/{mahasiswa}', [DosenBimbinganController::class, 'mahasiswaDetail'])->name('bimbingan.mahasiswa');
     
-    // Penilaian Sidang
-    Route::get('/nilai', [NilaiController::class, 'index'])->name('nilai.index');
-    Route::get('/nilai/{pelaksanaan}/create', [NilaiController::class, 'create'])->name('nilai.create');
-    Route::post('/nilai/{pelaksanaan}', [NilaiController::class, 'store'])->name('nilai.store');
-    Route::put('/nilai/{nilai}', [NilaiController::class, 'update'])->name('nilai.update');
+    // Penilaian Seminar Proposal
+    Route::get('/nilai-sempro', [NilaiSemproController::class, 'index'])->name('nilai-sempro.index');
+    Route::get('/nilai-sempro/{pelaksanaan}/create', [NilaiSemproController::class, 'create'])->name('nilai-sempro.create');
+    Route::post('/nilai-sempro/{pelaksanaan}', [NilaiSemproController::class, 'store'])->name('nilai-sempro.store');
+    Route::put('/nilai-sempro/{nilai}', [NilaiSemproController::class, 'update'])->name('nilai-sempro.update');
+    
+    // Penilaian Sidang Skripsi
+    Route::get('/nilai-sidang', [NilaiSidangController::class, 'index'])->name('nilai-sidang.index');
+    Route::get('/nilai-sidang/{pelaksanaan}/create', [NilaiSidangController::class, 'create'])->name('nilai-sidang.create');
+    Route::post('/nilai-sidang/{pelaksanaan}', [NilaiSidangController::class, 'store'])->name('nilai-sidang.store');
+    Route::put('/nilai-sidang/{nilai}', [NilaiSidangController::class, 'update'])->name('nilai-sidang.update');
     
     // Persetujuan Sidang
     Route::get('/persetujuan-sidang', [PersetujuanSidangController::class, 'index'])->name('persetujuan-sidang.index');

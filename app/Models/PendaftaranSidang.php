@@ -32,6 +32,29 @@ class PendaftaranSidang extends Model
     {
         return $this->belongsTo(TopikSkripsi::class, 'topik_id');
     }
+    
+    /**
+     * Get the topik skripsi (alias for topik).
+     */
+    public function topikSkripsi(): BelongsTo
+    {
+        return $this->belongsTo(TopikSkripsi::class, 'topik_id');
+    }
+    
+    /**
+     * Get the mahasiswa through topik.
+     */
+    public function mahasiswa()
+    {
+        return $this->hasOneThrough(
+            Mahasiswa::class,
+            TopikSkripsi::class,
+            'id', // Foreign key on topik_skripsi table
+            'id', // Foreign key on mahasiswa table
+            'topik_id', // Local key on pendaftaran_sidang table
+            'mahasiswa_id' // Local key on topik_skripsi table
+        );
+    }
 
     /**
      * Get the jadwal sidang.

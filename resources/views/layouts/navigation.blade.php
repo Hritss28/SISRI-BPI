@@ -59,8 +59,14 @@
                         <x-nav-link :href="route('dosen.bimbingan.index')" :active="request()->routeIs('dosen.bimbingan.*')">
                             {{ __('Bimbingan') }}
                         </x-nav-link>
-                        <x-nav-link :href="route('dosen.nilai.index')" :active="request()->routeIs('dosen.nilai.*')">
-                            {{ __('Penilaian') }}
+                        <x-nav-link :href="route('dosen.nilai-sempro.index')" :active="request()->routeIs('dosen.nilai-sempro.*')">
+                            {{ __('Nilai Sempro') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('dosen.nilai-sidang.index')" :active="request()->routeIs('dosen.nilai-sidang.*')">
+                            {{ __('Nilai Sidang') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('dosen.persetujuan-sidang.index')" :active="request()->routeIs('dosen.persetujuan-sidang.*')">
+                            {{ __('Persetujuan') }}
                         </x-nav-link>
                     @endif
 
@@ -187,8 +193,14 @@
                 <x-responsive-nav-link :href="route('dosen.bimbingan.index')" :active="request()->routeIs('dosen.bimbingan.*')">
                     {{ __('Bimbingan') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('dosen.nilai.index')" :active="request()->routeIs('dosen.nilai.*')">
-                    {{ __('Penilaian') }}
+                <x-responsive-nav-link :href="route('dosen.nilai-sempro.index')" :active="request()->routeIs('dosen.nilai-sempro.*')">
+                    {{ __('Nilai Sempro') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('dosen.nilai-sidang.index')" :active="request()->routeIs('dosen.nilai-sidang.*')">
+                    {{ __('Nilai Sidang') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('dosen.persetujuan-sidang.index')" :active="request()->routeIs('dosen.persetujuan-sidang.*')">
+                    {{ __('Persetujuan') }}
                 </x-responsive-nav-link>
             @endif
 

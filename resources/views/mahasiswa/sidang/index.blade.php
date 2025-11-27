@@ -13,14 +13,31 @@
             $seminarRejected = $seminarProposal && $seminarProposal->isRejected();
             $sidangRejected = $sidangSkripsi && $sidangSkripsi->isRejected();
             
-            // Cek apakah sudah lulus sempro (punya nilai)
-            $lulusSempro = $seminarProposalActive && $seminarProposalActive->pelaksanaanSidang && $seminarProposalActive->pelaksanaanSidang->nilai;
+            // Cek apakah sempro sudah punya nilai
+            $semproHasNilai = $seminarProposalActive && $seminarProposalActive->pelaksanaanSidang && 
+                              $seminarProposalActive->pelaksanaanSidang->nilai->isNotEmpty();
+            
+            // Cek apakah sempro LULUS (nilai >= C)
+            $lulusSempro = $semproHasNilai && $seminarProposalActive->pelaksanaanSidang->isLulus();
+            
+            // Cek apakah sempro TIDAK LULUS (nilai D atau E)
+            $tidakLulusSempro = $semproHasNilai && $seminarProposalActive->pelaksanaanSidang->isTidakLulus();
+            
+            // Cek apakah sidang sudah punya nilai
+            $sidangHasNilai = $sidangSkripsiActive && $sidangSkripsiActive->pelaksanaanSidang && 
+                              $sidangSkripsiActive->pelaksanaanSidang->nilai->isNotEmpty();
+            
+            // Cek kelulusan sidang
+            $lulusSidang = $sidangHasNilai && $sidangSkripsiActive->pelaksanaanSidang->isLulus();
+            $tidakLulusSidang = $sidangHasNilai && $sidangSkripsiActive->pelaksanaanSidang->isTidakLulus();
             
             // Status untuk progress
             $seminarStatus = 'pending';
             if ($seminarProposalActive) {
                 if ($lulusSempro) {
                     $seminarStatus = 'completed';
+                } elseif ($tidakLulusSempro) {
+                    $seminarStatus = 'failed';
                 } else {
                     $seminarStatus = 'active';
                 }
@@ -28,12 +45,20 @@
             
             $sidangStatus = 'pending';
             if ($sidangSkripsiActive) {
-                if ($sidangSkripsiActive->pelaksanaanSidang && $sidangSkripsiActive->pelaksanaanSidang->nilai) {
+                if ($lulusSidang) {
                     $sidangStatus = 'completed';
+                } elseif ($tidakLulusSidang) {
+                    $sidangStatus = 'failed';
                 } else {
                     $sidangStatus = 'active';
                 }
             }
+            
+            // Bisa daftar sempro lagi jika tidak lulus (nilai D/E)
+            $canRegisterSemproAgain = $tidakLulusSempro || $seminarRejected || !$seminarProposalActive;
+            
+            // Bisa daftar sidang jika lulus sempro dan belum/tidak lulus sidang
+            $canRegisterSidang = $lulusSempro && (!$sidangSkripsiActive || $tidakLulusSidang || $sidangRejected);
         @endphp
 
         <!-- Page Header -->
@@ -43,23 +68,23 @@
                 <p class="text-gray-600">Kelola pendaftaran seminar dan sidang skripsi Anda</p>
             </div>
             <div class="mt-4 md:mt-0 flex gap-2">
-                @if(!$seminarProposalActive)
+                @if($canRegisterSemproAgain)
                 <a href="{{ route('mahasiswa.sidang.create', ['jenis' => 'seminar_proposal']) }}" 
                    class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
-                    {{ $seminarRejected ? 'Daftar Ulang Seminar' : 'Daftar Seminar' }}
+                    {{ $tidakLulusSempro || $seminarRejected ? 'Daftar Ulang Seminar' : 'Daftar Seminar' }}
                 </a>
                 @endif
                 
-                @if($lulusSempro && !$sidangSkripsiActive)
+                @if($canRegisterSidang)
                 <a href="{{ route('mahasiswa.sidang.create', ['jenis' => 'sidang_skripsi']) }}" 
                    class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
-                    {{ $sidangRejected ? 'Daftar Ulang Sidang' : 'Daftar Sidang' }}
+                    {{ $tidakLulusSidang || $sidangRejected ? 'Daftar Ulang Sidang' : 'Daftar Sidang' }}
                 </a>
                 @elseif(!$lulusSempro && !$sidangSkripsiActive)
                 <button disabled
@@ -103,21 +128,27 @@
                 
                 <!-- Step 1: Seminar Proposal -->
                 <div class="flex flex-col items-center flex-1">
-                    <div class="w-14 h-14 rounded-full flex items-center justify-center {{ $seminarStatus === 'completed' ? 'bg-green-500' : ($seminarStatus === 'active' ? 'bg-blue-500' : 'bg-gray-200') }}">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center {{ $seminarStatus === 'completed' ? 'bg-green-500' : ($seminarStatus === 'failed' ? 'bg-red-500' : ($seminarStatus === 'active' ? 'bg-blue-500' : 'bg-gray-200')) }}">
                         @if($seminarStatus === 'completed')
                             <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        @elseif($seminarStatus === 'failed')
+                            <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                             </svg>
                         @else
                             <span class="text-xl font-bold {{ $seminarStatus === 'active' ? 'text-white' : 'text-gray-500' }}">1</span>
                         @endif
                     </div>
-                    <p class="text-sm font-medium mt-2 {{ $seminarStatus === 'completed' ? 'text-green-600' : ($seminarStatus === 'active' ? 'text-blue-600' : 'text-gray-500') }}">
+                    <p class="text-sm font-medium mt-2 {{ $seminarStatus === 'completed' ? 'text-green-600' : ($seminarStatus === 'failed' ? 'text-red-600' : ($seminarStatus === 'active' ? 'text-blue-600' : 'text-gray-500')) }}">
                         Seminar Proposal
                     </p>
                     <p class="text-xs text-gray-500">
                         @if($seminarStatus === 'completed')
-                            Selesai
+                            Lulus
+                        @elseif($seminarStatus === 'failed')
+                            Tidak Lulus
                         @elseif($seminarStatus === 'active')
                             Terdaftar
                         @else
@@ -131,21 +162,27 @@
 
                 <!-- Step 2: Sidang Skripsi -->
                 <div class="flex flex-col items-center flex-1">
-                    <div class="w-14 h-14 rounded-full flex items-center justify-center {{ $sidangStatus === 'completed' ? 'bg-green-500' : ($sidangStatus === 'active' ? 'bg-blue-500' : 'bg-gray-200') }}">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center {{ $sidangStatus === 'completed' ? 'bg-green-500' : ($sidangStatus === 'failed' ? 'bg-red-500' : ($sidangStatus === 'active' ? 'bg-blue-500' : 'bg-gray-200')) }}">
                         @if($sidangStatus === 'completed')
                             <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        @elseif($sidangStatus === 'failed')
+                            <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                             </svg>
                         @else
                             <span class="text-xl font-bold {{ $sidangStatus === 'active' ? 'text-white' : 'text-gray-500' }}">2</span>
                         @endif
                     </div>
-                    <p class="text-sm font-medium mt-2 {{ $sidangStatus === 'completed' ? 'text-green-600' : ($sidangStatus === 'active' ? 'text-blue-600' : 'text-gray-500') }}">
+                    <p class="text-sm font-medium mt-2 {{ $sidangStatus === 'completed' ? 'text-green-600' : ($sidangStatus === 'failed' ? 'text-red-600' : ($sidangStatus === 'active' ? 'text-blue-600' : 'text-gray-500')) }}">
                         Sidang Skripsi
                     </p>
                     <p class="text-xs text-gray-500">
                         @if($sidangStatus === 'completed')
-                            Selesai
+                            Lulus
+                        @elseif($sidangStatus === 'failed')
+                            Tidak Lulus
                         @elseif($sidangStatus === 'active')
                             Terdaftar
                         @else
@@ -239,18 +276,51 @@
                             <!-- Tanggal Sidang -->
                             <div class="flex items-center justify-between">
                                 <span class="text-sm text-gray-500">Tanggal Sidang</span>
-                                <span class="text-sm font-medium text-gray-800">{{ $seminarProposal->pelaksanaanSidang->tanggal ? \Carbon\Carbon::parse($seminarProposal->pelaksanaanSidang->tanggal)->format('d M Y') : '-' }}</span>
+                                <span class="text-sm font-medium text-gray-800">{{ $seminarProposal->pelaksanaanSidang->tanggal_sidang ? $seminarProposal->pelaksanaanSidang->tanggal_sidang->format('d M Y') : '-' }}</span>
                             </div>
                             @endif
                             
-                            @if($lulusSempro)
+                            @if($semproHasNilai)
                             <!-- Nilai -->
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-500">Nilai</span>
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    ✓ Lulus
-                                </span>
+                            <div class="border-t pt-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-700">Hasil Nilai</span>
+                                    @if($lulusSempro)
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            ✓ Lulus
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            ✗ Tidak Lulus
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <div class="flex items-center justify-center gap-4">
+                                        <div class="text-center">
+                                            <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center {{ $lulusSempro ? 'bg-green-500' : 'bg-red-500' }}">
+                                                <span class="text-xl font-bold text-white">{{ $seminarProposal->pelaksanaanSidang->nilai_huruf }}</span>
+                                            </div>
+                                            <p class="text-lg font-bold text-gray-800 mt-2">{{ number_format($seminarProposal->pelaksanaanSidang->nilai_rata_rata, 2) }}</p>
+                                            <p class="text-xs text-gray-500">Rata-rata</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                            
+                            @if($tidakLulusSempro)
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                                <div class="flex gap-2">
+                                    <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <div>
+                                        <p class="text-sm font-medium text-red-800">Tidak Memenuhi Syarat Kelulusan</p>
+                                        <p class="text-xs text-red-700 mt-1">Nilai Anda di bawah C. Silakan daftar ulang seminar proposal.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
                             @endif
                         </div>
                         
@@ -259,7 +329,7 @@
                                class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors">
                                 Lihat Detail
                             </a>
-                            @if($isRejected)
+                            @if($isRejected || $tidakLulusSempro)
                             <a href="{{ route('mahasiswa.sidang.create', ['jenis' => 'seminar_proposal']) }}" 
                                class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                                 Daftar Ulang
@@ -345,8 +415,51 @@
                             <!-- Tanggal Sidang -->
                             <div class="flex items-center justify-between">
                                 <span class="text-sm text-gray-500">Tanggal Sidang</span>
-                                <span class="text-sm font-medium text-gray-800">{{ $sidangSkripsi->pelaksanaanSidang->tanggal ? \Carbon\Carbon::parse($sidangSkripsi->pelaksanaanSidang->tanggal)->format('d M Y') : '-' }}</span>
+                                <span class="text-sm font-medium text-gray-800">{{ $sidangSkripsi->pelaksanaanSidang->tanggal_sidang ? $sidangSkripsi->pelaksanaanSidang->tanggal_sidang->format('d M Y') : '-' }}</span>
                             </div>
+                            @endif
+                            
+                            @if($sidangHasNilai)
+                            <!-- Nilai -->
+                            <div class="border-t pt-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-700">Hasil Nilai</span>
+                                    @if($lulusSidang)
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            ✓ Lulus
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            ✗ Tidak Lulus
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <div class="flex items-center justify-center gap-4">
+                                        <div class="text-center">
+                                            <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center {{ $lulusSidang ? 'bg-green-500' : 'bg-red-500' }}">
+                                                <span class="text-xl font-bold text-white">{{ $sidangSkripsi->pelaksanaanSidang->nilai_huruf }}</span>
+                                            </div>
+                                            <p class="text-lg font-bold text-gray-800 mt-2">{{ number_format($sidangSkripsi->pelaksanaanSidang->nilai_rata_rata, 2) }}</p>
+                                            <p class="text-xs text-gray-500">Rata-rata</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            @if($tidakLulusSidang)
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                                <div class="flex gap-2">
+                                    <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <div>
+                                        <p class="text-sm font-medium text-red-800">Tidak Memenuhi Syarat Kelulusan</p>
+                                        <p class="text-xs text-red-700 mt-1">Nilai Anda di bawah C. Silakan daftar ulang sidang skripsi.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
                             @endif
                         </div>
                         
@@ -355,7 +468,7 @@
                                class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
                                 Lihat Detail
                             </a>
-                            @if($isRejected)
+                            @if($isRejected || $tidakLulusSidang)
                             <a href="{{ route('mahasiswa.sidang.create', ['jenis' => 'sidang_skripsi']) }}" 
                                class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                                 Daftar Ulang
