@@ -66,6 +66,19 @@ class SidangController extends Controller
                 ->with('error', 'Anda sudah mendaftar untuk ' . str_replace('_', ' ', $jenis) . '.');
         }
 
+        // Jika mendaftar sidang skripsi, cek apakah sudah lulus seminar proposal
+        if ($jenis === 'sidang_skripsi') {
+            $seminarProposal = PendaftaranSidang::where('topik_id', $topik->id)
+                ->where('jenis', 'seminar_proposal')
+                ->whereHas('pelaksanaanSidang.nilai')
+                ->first();
+            
+            if (!$seminarProposal) {
+                return redirect()->route('mahasiswa.sidang.index')
+                    ->with('error', 'Anda belum lulus seminar proposal. Selesaikan seminar proposal terlebih dahulu.');
+            }
+        }
+
         $jadwals = JadwalSidang::where('prodi_id', $mahasiswa->prodi_id)
             ->where('jenis', $jenis)
             ->active()
@@ -107,6 +120,19 @@ class SidangController extends Controller
         if ($existingPendaftaran) {
             return redirect()->route('mahasiswa.sidang.index')
                 ->with('error', 'Anda sudah mendaftar untuk ' . str_replace('_', ' ', $request->jenis) . '.');
+        }
+
+        // Jika mendaftar sidang skripsi, cek apakah sudah lulus seminar proposal
+        if ($request->jenis === 'sidang_skripsi') {
+            $seminarProposal = PendaftaranSidang::where('topik_id', $topik->id)
+                ->where('jenis', 'seminar_proposal')
+                ->whereHas('pelaksanaanSidang.nilai')
+                ->first();
+            
+            if (!$seminarProposal) {
+                return redirect()->route('mahasiswa.sidang.index')
+                    ->with('error', 'Anda belum lulus seminar proposal. Selesaikan seminar proposal terlebih dahulu.');
+            }
         }
 
         // Cek jadwal masih buka

@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('jadwal_sidang', function (Blueprint $table) {
             $table->id();
             $table->foreignId('prodi_id')->constrained('units')->cascadeOnDelete();
-            $table->foreignId('periode_id')->constrained('periode')->cascadeOnDelete();
+            $table->foreignId('periode_id')->nullable()->constrained('periode')->nullOnDelete();
             $table->enum('jenis', ['seminar_proposal', 'sidang_skripsi']);
-            $table->string('nama_periode', 100);
-            $table->dateTime('tanggal_buka');
-            $table->dateTime('tanggal_tutup');
+            $table->string('nama', 150);
+            $table->text('deskripsi')->nullable();
+            $table->date('tanggal_buka');
+            $table->date('tanggal_tutup');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

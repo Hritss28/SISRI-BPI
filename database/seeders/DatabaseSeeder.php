@@ -9,6 +9,9 @@ use App\Models\Dosen;
 use App\Models\KoordinatorProdi;
 use App\Models\BidangMinat;
 use App\Models\Periode;
+use App\Models\JadwalSidang;
+use App\Models\TopikSkripsi;
+use App\Models\UsulanPembimbing;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -40,6 +43,12 @@ class DatabaseSeeder extends Seeder
         
         // Create Active Periode
         $this->createPeriode();
+        
+        // Create Jadwal Sidang
+        $this->createJadwalSidang($units);
+        
+        // Create Sample Topik Skripsi (for testing)
+        $this->createSampleTopik($units);
     }
 
     private function createRoles(): void
@@ -305,6 +314,120 @@ class DatabaseSeeder extends Seeder
             'tanggal_mulai' => '2025-03-01',
             'tanggal_selesai' => '2025-08-31',
             'is_active' => false,
+        ]);
+    }
+    
+    private function createJadwalSidang(array $units): void
+    {
+        // Jadwal Seminar Proposal - Active Now (November 2025)
+        JadwalSidang::create([
+            'prodi_id' => $units['prodi']->id,
+            'nama' => 'Seminar Proposal Periode November 2025',
+            'jenis' => 'seminar_proposal',
+            'tanggal_buka' => '2025-11-01',
+            'tanggal_tutup' => '2025-11-30',
+            'deskripsi' => 'Pendaftaran seminar proposal untuk mahasiswa yang sudah memenuhi syarat bimbingan',
+            'is_active' => true,
+        ]);
+        
+        JadwalSidang::create([
+            'prodi_id' => $units['prodi']->id,
+            'nama' => 'Seminar Proposal Periode Desember 2025',
+            'jenis' => 'seminar_proposal',
+            'tanggal_buka' => '2025-12-01',
+            'tanggal_tutup' => '2025-12-31',
+            'deskripsi' => 'Pendaftaran seminar proposal untuk periode Desember',
+            'is_active' => true,
+        ]);
+        
+        // Jadwal Sidang Skripsi - Active Now (November 2025)
+        JadwalSidang::create([
+            'prodi_id' => $units['prodi']->id,
+            'nama' => 'Sidang Skripsi Periode November 2025',
+            'jenis' => 'sidang_skripsi',
+            'tanggal_buka' => '2025-11-01',
+            'tanggal_tutup' => '2025-11-30',
+            'deskripsi' => 'Pendaftaran sidang skripsi untuk mahasiswa yang sudah lulus seminar proposal',
+            'is_active' => true,
+        ]);
+        
+        JadwalSidang::create([
+            'prodi_id' => $units['prodi']->id,
+            'nama' => 'Sidang Skripsi Periode Desember 2025',
+            'jenis' => 'sidang_skripsi',
+            'tanggal_buka' => '2025-12-01',
+            'tanggal_tutup' => '2025-12-31',
+            'deskripsi' => 'Pendaftaran sidang skripsi untuk periode Desember',
+            'is_active' => true,
+        ]);
+    }
+    
+    private function createSampleTopik(array $units): void
+    {
+        // Get mahasiswa Budi (approved topik for testing)
+        $mahasiswaBudi = Mahasiswa::where('nim', '2021001')->first();
+        $mahasiswaSiti = Mahasiswa::where('nim', '2021002')->first();
+        
+        // Get dosen
+        $dosenAgus = Dosen::where('nip', '197001011995121001')->first();
+        $dosenDewi = Dosen::where('nip', '198005152005012001')->first();
+        
+        // Get bidang minat
+        $bidangMinatAI = BidangMinat::where('nama', 'Artificial Intelligence')->first();
+        $bidangMinatWeb = BidangMinat::where('nama', 'Web Development')->first();
+        
+        // Topik untuk Budi - Status DITERIMA (bisa akses Bimbingan & Sidang)
+        $topikBudi = TopikSkripsi::create([
+            'mahasiswa_id' => $mahasiswaBudi->id,
+            'bidang_minat_id' => $bidangMinatAI->id,
+            'judul' => 'Implementasi Machine Learning untuk Prediksi Kelulusan Mahasiswa',
+            'file_proposal' => null,
+            'status' => 'diterima',
+            'catatan' => 'Topik disetujui. Silakan lanjutkan dengan bimbingan.',
+        ]);
+        
+        // Usulan pembimbing untuk Budi - Status DITERIMA
+        UsulanPembimbing::create([
+            'topik_id' => $topikBudi->id,
+            'dosen_id' => $dosenAgus->id,
+            'urutan' => 1,
+            'status' => 'diterima',
+            'catatan' => 'Bersedia menjadi pembimbing 1',
+        ]);
+        
+        UsulanPembimbing::create([
+            'topik_id' => $topikBudi->id,
+            'dosen_id' => $dosenDewi->id,
+            'urutan' => 2,
+            'status' => 'diterima',
+            'catatan' => 'Bersedia menjadi pembimbing 2',
+        ]);
+        
+        // Topik untuk Siti - Status MENUNGGU (untuk testing workflow approval)
+        $topikSiti = TopikSkripsi::create([
+            'mahasiswa_id' => $mahasiswaSiti->id,
+            'bidang_minat_id' => $bidangMinatWeb->id,
+            'judul' => 'Pengembangan Sistem Informasi Akademik Berbasis Web dengan Laravel',
+            'file_proposal' => null,
+            'status' => 'menunggu',
+            'catatan' => null,
+        ]);
+        
+        // Usulan pembimbing untuk Siti - Status MENUNGGU
+        UsulanPembimbing::create([
+            'topik_id' => $topikSiti->id,
+            'dosen_id' => $dosenDewi->id,
+            'urutan' => 1,
+            'status' => 'menunggu',
+            'catatan' => null,
+        ]);
+        
+        UsulanPembimbing::create([
+            'topik_id' => $topikSiti->id,
+            'dosen_id' => $dosenAgus->id,
+            'urutan' => 2,
+            'status' => 'menunggu',
+            'catatan' => null,
         ]);
     }
 }

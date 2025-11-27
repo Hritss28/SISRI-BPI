@@ -85,27 +85,21 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
     Route::get('/topik', [TopikController::class, 'index'])->name('topik.index');
     Route::get('/topik/create', [TopikController::class, 'create'])->name('topik.create');
     Route::post('/topik', [TopikController::class, 'store'])->name('topik.store');
-    Route::get('/topik/{topik}', [TopikController::class, 'show'])->name('topik.show');
     Route::get('/topik/{topik}/edit', [TopikController::class, 'edit'])->name('topik.edit');
     Route::put('/topik/{topik}', [TopikController::class, 'update'])->name('topik.update');
-    
-    // Usulan Pembimbing
-    Route::get('/topik/{topik}/usulan-pembimbing', [TopikController::class, 'usulanPembimbing'])->name('topik.usulan-pembimbing');
-    Route::post('/topik/{topik}/usulan-pembimbing', [TopikController::class, 'storeUsulanPembimbing'])->name('topik.store-usulan');
     
     // Bimbingan
     Route::get('/bimbingan', [MahasiswaBimbinganController::class, 'index'])->name('bimbingan.index');
     Route::get('/bimbingan/create', [MahasiswaBimbinganController::class, 'create'])->name('bimbingan.create');
     Route::post('/bimbingan', [MahasiswaBimbinganController::class, 'store'])->name('bimbingan.store');
     Route::get('/bimbingan/{bimbingan}', [MahasiswaBimbinganController::class, 'show'])->name('bimbingan.show');
+    Route::post('/bimbingan/{bimbingan}/upload-revisi', [MahasiswaBimbinganController::class, 'uploadRevisi'])->name('bimbingan.upload-revisi');
     
     // Sidang
     Route::get('/sidang', [SidangController::class, 'index'])->name('sidang.index');
-    Route::get('/sidang/daftar', [SidangController::class, 'daftar'])->name('sidang.daftar');
-    Route::post('/sidang/daftar', [SidangController::class, 'storeDaftar'])->name('sidang.store-daftar');
-    Route::get('/sidang/{pelaksanaan}', [SidangController::class, 'show'])->name('sidang.show');
-    Route::get('/sidang/{pelaksanaan}/revisi', [SidangController::class, 'revisi'])->name('sidang.revisi');
-    Route::post('/sidang/{pelaksanaan}/upload-revisi', [SidangController::class, 'uploadRevisi'])->name('sidang.upload-revisi');
+    Route::get('/sidang/create', [SidangController::class, 'create'])->name('sidang.create');
+    Route::post('/sidang', [SidangController::class, 'store'])->name('sidang.store');
+    Route::get('/sidang/{pendaftaran}', [SidangController::class, 'show'])->name('sidang.show');
 });
 
 // ==================== DOSEN ROUTES ====================

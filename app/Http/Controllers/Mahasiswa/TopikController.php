@@ -124,6 +124,8 @@ class TopikController extends Controller
                 ->with('error', 'Hanya topik yang ditolak yang dapat diedit.');
         }
 
+        $topik->load('usulanPembimbing.dosen');
+
         $bidangMinats = BidangMinat::where('prodi_id', $mahasiswa->prodi_id)
             ->active()
             ->get();
@@ -149,8 +151,6 @@ class TopikController extends Controller
             'judul' => 'required',
             'bidang_minat_id' => 'required|exists:bidang_minat,id',
             'file_proposal' => 'nullable|file|mimes:pdf|max:5120',
-            'pembimbing_1_id' => 'required|exists:dosen,id',
-            'pembimbing_2_id' => 'required|exists:dosen,id|different:pembimbing_1_id',
         ]);
 
         if ($request->hasFile('file_proposal')) {
@@ -168,22 +168,8 @@ class TopikController extends Controller
             'catatan' => null,
         ]);
 
-        // Update usulan pembimbing
-        $topik->usulanPembimbing()->delete();
-
-        UsulanPembimbing::create([
-            'topik_id' => $topik->id,
-            'dosen_id' => $request->pembimbing_1_id,
-            'urutan' => 1,
-            'status' => 'menunggu',
-        ]);
-
-        UsulanPembimbing::create([
-            'topik_id' => $topik->id,
-            'dosen_id' => $request->pembimbing_2_id,
-            'urutan' => 2,
-            'status' => 'menunggu',
-        ]);
+        // Reset usulan pembimbing status to menunggu
+        $topik->usulanPembimbing()->update(['status' => 'menunggu', 'catatan' => null]);
 
         return redirect()->route('mahasiswa.topik.index')
             ->with('success', 'Topik skripsi berhasil diperbarui.');
