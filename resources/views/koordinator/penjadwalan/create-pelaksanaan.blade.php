@@ -1,0 +1,176 @@
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                Jadwalkan Pelaksanaan Sidang
+            </h2>
+        </div>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <!-- Info Mahasiswa -->
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Mahasiswa</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Nama</p>
+                            <p class="font-medium">{{ $pendaftaran->topik->mahasiswa->user->name ?? '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">NIM</p>
+                            <p class="font-medium">{{ $pendaftaran->topik->mahasiswa->nim ?? '-' }}</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <p class="text-sm text-gray-500">Judul Skripsi</p>
+                            <p class="font-medium">{{ $pendaftaran->topik->judul ?? '-' }}</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <p class="text-sm text-gray-500">Pembimbing</p>
+                            @php
+                                $pembimbing = $pendaftaran->topik->usulanPembimbing()->approved()->orderBy('urutan')->get();
+                            @endphp
+                            @foreach($pembimbing as $p)
+                                <p class="font-medium">
+                                    Pembimbing {{ $p->urutan }}: {{ $p->dosen->user->name ?? '-' }}
+                                </p>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Jadwal -->
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Form Penjadwalan</h3>
+
+                    <form action="{{ route('koordinator.penjadwalan.store-pelaksanaan', $pendaftaran) }}" method="POST">
+                        @csrf
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="tanggal_sidang" class="block text-sm font-medium text-gray-700">Tanggal dan Waktu Sidang</label>
+                                <input type="datetime-local" name="tanggal_sidang" id="tanggal_sidang" value="{{ old('tanggal_sidang') }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                @error('tanggal_sidang')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="tempat" class="block text-sm font-medium text-gray-700">Tempat / Ruangan</label>
+                                <input type="text" name="tempat" id="tempat" value="{{ old('tempat') }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    placeholder="Contoh: Ruang Sidang 1" required>
+                                @error('tempat')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h4 class="text-md font-medium text-gray-900 mb-2">Tim Penguji</h4>
+                            <p class="text-sm text-gray-500 mb-4">Pembimbing akan otomatis ditambahkan sebagai penguji. Silakan pilih penguji tambahan.</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="penguji_1_id" class="block text-sm font-medium text-gray-700">Penguji 1</label>
+                                    <select name="penguji_1_id" id="penguji_1_id"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                        <option value="">-- Pilih Penguji 1 --</option>
+                                        @foreach($dosens as $dosen)
+                                            @php
+                                                $isPembimbing = $pembimbing->contains('dosen_id', $dosen->id);
+                                            @endphp
+                                            @if(!$isPembimbing)
+                                                <option value="{{ $dosen->id }}" {{ old('penguji_1_id') == $dosen->id ? 'selected' : '' }}>
+                                                    {{ $dosen->user->name }}
+                                                </option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                    @error('penguji_1_id')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label for="penguji_2_id" class="block text-sm font-medium text-gray-700">Penguji 2</label>
+                                    <select name="penguji_2_id" id="penguji_2_id"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                        <option value="">-- Pilih Penguji 2 --</option>
+                                        @foreach($dosens as $dosen)
+                                            @php
+                                                $isPembimbing = $pembimbing->contains('dosen_id', $dosen->id);
+                                            @endphp
+                                            @if(!$isPembimbing)
+                                                <option value="{{ $dosen->id }}" {{ old('penguji_2_id') == $dosen->id ? 'selected' : '' }}>
+                                                    {{ $dosen->user->name }}
+                                                </option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                    @error('penguji_2_id')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview Tim -->
+                        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Tim Sidang yang Akan Terbentuk:</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                @foreach($pembimbing as $p)
+                                    <li class="flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        <span class="font-medium">Pembimbing {{ $p->urutan }}:</span>&nbsp;{{ $p->dosen->user->name ?? '-' }}
+                                    </li>
+                                @endforeach
+                                <li class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    <span class="font-medium">Penguji 1:</span>&nbsp;<span id="preview_penguji_1">-</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    <span class="font-medium">Penguji 2:</span>&nbsp;<span id="preview_penguji_2">-</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="flex items-center justify-end space-x-3">
+                            <a href="{{ route('koordinator.penjadwalan.show', $pendaftaran->jadwal_sidang_id) }}"
+                                class="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-200">
+                                Batal
+                            </a>
+                            <button type="submit"
+                                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+                                Jadwalkan Sidang
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('penguji_1_id').addEventListener('change', function() {
+            var selected = this.options[this.selectedIndex];
+            document.getElementById('preview_penguji_1').textContent = selected.value ? selected.text : '-';
+        });
+
+        document.getElementById('penguji_2_id').addEventListener('change', function() {
+            var selected = this.options[this.selectedIndex];
+            document.getElementById('preview_penguji_2').textContent = selected.value ? selected.text : '-';
+        });
+    </script>
+</x-app-layout>

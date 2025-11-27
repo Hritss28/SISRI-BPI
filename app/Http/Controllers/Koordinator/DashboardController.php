@@ -14,7 +14,7 @@ class DashboardController extends Controller
     public function index()
     {
         $dosen = auth()->user()->dosen;
-        $koordinator = $dosen->koordinatorProdi()->active()->first();
+        $koordinator = $dosen?->activeKoordinatorProdi;
 
         if (!$koordinator) {
             return redirect()->route('dosen.dashboard')

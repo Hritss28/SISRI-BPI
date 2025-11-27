@@ -25,7 +25,13 @@ class CheckRole
             return redirect()->route('login')->with('error', 'Akun Anda tidak aktif.');
         }
 
-        if (!in_array($request->user()->role, $roles)) {
+        // Support for pipe-separated roles (e.g., 'dosen|koordinator')
+        $allowedRoles = [];
+        foreach ($roles as $role) {
+            $allowedRoles = array_merge($allowedRoles, explode('|', $role));
+        }
+
+        if (!in_array($request->user()->role, $allowedRoles)) {
             abort(403, 'Unauthorized action.');
         }
 

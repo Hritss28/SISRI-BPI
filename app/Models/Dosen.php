@@ -41,11 +41,19 @@ class Dosen extends Model
     }
 
     /**
-     * Get koordinator prodi.
+     * Get koordinator prodi records.
      */
-    public function koordinatorProdi(): HasOne
+    public function koordinatorProdi(): HasMany
     {
-        return $this->hasOne(KoordinatorProdi::class);
+        return $this->hasMany(KoordinatorProdi::class);
+    }
+
+    /**
+     * Get active koordinator prodi.
+     */
+    public function activeKoordinatorProdi(): HasOne
+    {
+        return $this->hasOne(KoordinatorProdi::class)->where('is_active', true);
     }
 
     /**

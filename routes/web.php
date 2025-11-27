@@ -105,7 +105,8 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
 });
 
 // ==================== DOSEN ROUTES ====================
-Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
+// Koordinator juga bisa akses menu dosen karena koordinator adalah dosen juga
+Route::middleware(['auth', 'role:dosen|koordinator'])->prefix('dosen')->name('dosen.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DosenDashboardController::class, 'index'])->name('dashboard');
     
@@ -150,19 +151,25 @@ Route::middleware(['auth', 'role:koordinator'])->prefix('koordinator')->name('ko
     
     // Penjadwalan Sidang
     Route::get('/penjadwalan', [PenjadwalanController::class, 'index'])->name('penjadwalan.index');
-    Route::get('/penjadwalan/jadwal', [PenjadwalanController::class, 'jadwal'])->name('penjadwalan.jadwal');
-    Route::post('/penjadwalan/jadwal', [PenjadwalanController::class, 'storeJadwal'])->name('penjadwalan.store-jadwal');
-    Route::get('/penjadwalan/pendaftaran', [PenjadwalanController::class, 'pendaftaran'])->name('penjadwalan.pendaftaran');
+    Route::get('/penjadwalan/create', [PenjadwalanController::class, 'create'])->name('penjadwalan.create');
+    Route::post('/penjadwalan', [PenjadwalanController::class, 'store'])->name('penjadwalan.store');
+    Route::get('/penjadwalan/{jadwal}', [PenjadwalanController::class, 'show'])->name('penjadwalan.show');
+    Route::get('/penjadwalan/{jadwal}/edit', [PenjadwalanController::class, 'edit'])->name('penjadwalan.edit');
+    Route::put('/penjadwalan/{jadwal}', [PenjadwalanController::class, 'update'])->name('penjadwalan.update');
+    Route::delete('/penjadwalan/{jadwal}', [PenjadwalanController::class, 'destroy'])->name('penjadwalan.destroy');
+    
+    // Pendaftaran dalam jadwal
     Route::post('/penjadwalan/pendaftaran/{pendaftaran}/approve', [PenjadwalanController::class, 'approvePendaftaran'])->name('penjadwalan.approve-pendaftaran');
     Route::post('/penjadwalan/pendaftaran/{pendaftaran}/reject', [PenjadwalanController::class, 'rejectPendaftaran'])->name('penjadwalan.reject-pendaftaran');
-    Route::get('/penjadwalan/pelaksanaan', [PenjadwalanController::class, 'pelaksanaan'])->name('penjadwalan.pelaksanaan');
-    Route::post('/penjadwalan/pelaksanaan', [PenjadwalanController::class, 'storePelaksanaan'])->name('penjadwalan.store-pelaksanaan');
-    Route::post('/penjadwalan/pelaksanaan/{pelaksanaan}/penguji', [PenjadwalanController::class, 'assignPenguji'])->name('penjadwalan.assign-penguji');
+    
+    // Pelaksanaan Sidang
+    Route::get('/penjadwalan/pendaftaran/{pendaftaran}/pelaksanaan', [PenjadwalanController::class, 'createPelaksanaan'])->name('penjadwalan.create-pelaksanaan');
+    Route::post('/penjadwalan/pendaftaran/{pendaftaran}/pelaksanaan', [PenjadwalanController::class, 'storePelaksanaan'])->name('penjadwalan.store-pelaksanaan');
+    Route::post('/penjadwalan/pelaksanaan/{pelaksanaan}/complete', [PenjadwalanController::class, 'completePelaksanaan'])->name('penjadwalan.complete-pelaksanaan');
     
     // Daftar Nilai
     Route::get('/daftar-nilai', [DaftarNilaiController::class, 'index'])->name('daftar-nilai.index');
     Route::get('/daftar-nilai/{pelaksanaan}', [DaftarNilaiController::class, 'show'])->name('daftar-nilai.show');
-    Route::get('/daftar-nilai/export', [DaftarNilaiController::class, 'export'])->name('daftar-nilai.export');
 });
 
 require __DIR__.'/auth.php';

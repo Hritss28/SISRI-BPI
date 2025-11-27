@@ -16,11 +16,11 @@ class PenjadwalanController extends Controller
     private function getProdiId()
     {
         $dosen = auth()->user()->dosen;
-        $koordinator = $dosen->koordinatorProdi()->active()->first();
+        $koordinator = $dosen?->activeKoordinatorProdi;
         return $koordinator?->prodi_id;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $prodiId = $this->getProdiId();
 
@@ -29,16 +29,20 @@ class PenjadwalanController extends Controller
                 ->with('error', 'Anda tidak memiliki akses sebagai koordinator.');
         }
 
+        $jenis = $request->get('jenis', 'sempro');
+        $jenisDb = $jenis === 'sempro' ? 'seminar_proposal' : 'sidang_skripsi';
+
         $jadwals = JadwalSidang::where('prodi_id', $prodiId)
+            ->where('jenis', $jenisDb)
             ->with('periode')
             ->withCount('pendaftaranSidang')
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return view('koordinator.penjadwalan.index', compact('jadwals'));
+        return view('koordinator.penjadwalan.index', compact('jadwals', 'jenis'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $prodiId = $this->getProdiId();
 
@@ -47,9 +51,10 @@ class PenjadwalanController extends Controller
                 ->with('error', 'Anda tidak memiliki akses sebagai koordinator.');
         }
 
+        $jenis = $request->get('jenis', 'sempro');
         $periodes = Periode::orderBy('tahun_akademik', 'desc')->get();
 
-        return view('koordinator.penjadwalan.create', compact('periodes'));
+        return view('koordinator.penjadwalan.create', compact('periodes', 'jenis'));
     }
 
     public function store(Request $request)
@@ -64,7 +69,7 @@ class PenjadwalanController extends Controller
         $request->validate([
             'periode_id' => 'required|exists:periode,id',
             'jenis' => 'required|in:seminar_proposal,sidang_skripsi',
-            'nama_periode' => 'required|max:100',
+            'nama' => 'required|max:150',
             'tanggal_buka' => 'required|date',
             'tanggal_tutup' => 'required|date|after:tanggal_buka',
             'is_active' => 'boolean',
@@ -74,13 +79,15 @@ class PenjadwalanController extends Controller
             'prodi_id' => $prodiId,
             'periode_id' => $request->periode_id,
             'jenis' => $request->jenis,
-            'nama_periode' => $request->nama_periode,
+            'nama' => $request->nama,
             'tanggal_buka' => $request->tanggal_buka,
             'tanggal_tutup' => $request->tanggal_tutup,
             'is_active' => $request->boolean('is_active', true),
         ]);
 
-        return redirect()->route('koordinator.penjadwalan.index')
+        $jenisParam = $request->jenis === 'seminar_proposal' ? 'sempro' : 'sidang';
+
+        return redirect()->route('koordinator.penjadwalan.index', ['jenis' => $jenisParam])
             ->with('success', 'Jadwal sidang berhasil dibuat.');
     }
 
@@ -92,11 +99,79 @@ class PenjadwalanController extends Controller
             abort(403);
         }
 
+        $jadwal->load('periode');
+
         $pendaftarans = PendaftaranSidang::where('jadwal_sidang_id', $jadwal->id)
-            ->with(['topik.mahasiswa', 'pelaksanaanSidang'])
+            ->with(['topik.mahasiswa.user', 'topik.usulanPembimbing.dosen', 'pelaksanaanSidang'])
+            ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return view('koordinator.penjadwalan.show', compact('jadwal', 'pendaftarans'));
+        $dosens = Dosen::where('prodi_id', $prodiId)->with('user')->get();
+
+        return view('koordinator.penjadwalan.show', compact('jadwal', 'pendaftarans', 'dosens'));
+    }
+
+    public function edit(JadwalSidang $jadwal)
+    {
+        $prodiId = $this->getProdiId();
+
+        if (!$prodiId || $jadwal->prodi_id !== $prodiId) {
+            abort(403);
+        }
+
+        $periodes = Periode::orderBy('tahun_akademik', 'desc')->get();
+
+        return view('koordinator.penjadwalan.edit', compact('jadwal', 'periodes'));
+    }
+
+    public function update(Request $request, JadwalSidang $jadwal)
+    {
+        $prodiId = $this->getProdiId();
+
+        if (!$prodiId || $jadwal->prodi_id !== $prodiId) {
+            abort(403);
+        }
+
+        $request->validate([
+            'periode_id' => 'required|exists:periode,id',
+            'nama' => 'required|max:150',
+            'tanggal_buka' => 'required|date',
+            'tanggal_tutup' => 'required|date|after:tanggal_buka',
+            'is_active' => 'boolean',
+        ]);
+
+        $jadwal->update([
+            'periode_id' => $request->periode_id,
+            'nama' => $request->nama,
+            'tanggal_buka' => $request->tanggal_buka,
+            'tanggal_tutup' => $request->tanggal_tutup,
+            'is_active' => $request->boolean('is_active'),
+        ]);
+
+        $jenisParam = $jadwal->jenis === 'seminar_proposal' ? 'sempro' : 'sidang';
+
+        return redirect()->route('koordinator.penjadwalan.index', ['jenis' => $jenisParam])
+            ->with('success', 'Jadwal sidang berhasil diperbarui.');
+    }
+
+    public function destroy(JadwalSidang $jadwal)
+    {
+        $prodiId = $this->getProdiId();
+
+        if (!$prodiId || $jadwal->prodi_id !== $prodiId) {
+            abort(403);
+        }
+
+        if ($jadwal->pendaftaranSidang()->count() > 0) {
+            return back()->with('error', 'Tidak dapat menghapus jadwal yang sudah memiliki pendaftaran.');
+        }
+
+        $jenisParam = $jadwal->jenis === 'seminar_proposal' ? 'sempro' : 'sidang';
+        
+        $jadwal->delete();
+
+        return redirect()->route('koordinator.penjadwalan.index', ['jenis' => $jenisParam])
+            ->with('success', 'Jadwal sidang berhasil dihapus.');
     }
 
     public function approvePendaftaran(Request $request, PendaftaranSidang $pendaftaran)
@@ -151,7 +226,11 @@ class PenjadwalanController extends Controller
             return back()->with('error', 'Pendaftaran belum disetujui oleh semua pihak.');
         }
 
-        $dosens = Dosen::where('prodi_id', $prodiId)->get();
+        if ($pendaftaran->pelaksanaanSidang) {
+            return back()->with('error', 'Sidang sudah dijadwalkan sebelumnya.');
+        }
+
+        $dosens = Dosen::where('prodi_id', $prodiId)->with('user')->get();
 
         return view('koordinator.penjadwalan.create-pelaksanaan', compact('pendaftaran', 'dosens'));
     }
@@ -162,6 +241,10 @@ class PenjadwalanController extends Controller
 
         if (!$prodiId || $pendaftaran->jadwalSidang->prodi_id !== $prodiId) {
             abort(403);
+        }
+
+        if ($pendaftaran->pelaksanaanSidang) {
+            return back()->with('error', 'Sidang sudah dijadwalkan sebelumnya.');
         }
 
         $request->validate([

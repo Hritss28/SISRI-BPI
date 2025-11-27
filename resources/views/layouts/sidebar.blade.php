@@ -35,7 +35,8 @@
                 @elseif(auth()->user()->isDosen() && auth()->user()->dosen)
                     <p class="text-xs text-blue-500">{{ auth()->user()->dosen->nidn ?? auth()->user()->dosen->nip ?? '' }}</p>
                     <p class="text-xs text-gray-500 truncate">{{ auth()->user()->dosen->prodi->nama ?? '' }}</p>
-                @elseif(auth()->user()->isKoordinator() && auth()->user()->koordinatorProdi)
+                @elseif(auth()->user()->isKoordinator() && auth()->user()->dosen?->activeKoordinatorProdi)
+                    <p class="text-xs text-blue-500">{{ auth()->user()->dosen->nidn ?? auth()->user()->dosen->nip ?? '' }}</p>
                     <p class="text-xs text-gray-500 truncate">Koordinator Prodi</p>
                 @else
                     <p class="text-xs text-gray-500">{{ auth()->user()->email }}</p>
@@ -134,15 +135,70 @@
             <x-sidebar-link :href="route('koordinator.dashboard')" :active="request()->routeIs('koordinator.dashboard')" icon="home">
                 Beranda
             </x-sidebar-link>
+            
+            {{-- Fitur Koordinator --}}
+            <div class="px-4 py-2 mt-2">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Koordinator</span>
+            </div>
             <x-sidebar-link :href="route('koordinator.bidang-minat.index')" :active="request()->routeIs('koordinator.bidang-minat.*')" icon="tag">
                 Bidang Minat
             </x-sidebar-link>
-            <x-sidebar-link :href="route('koordinator.penjadwalan.index')" :active="request()->routeIs('koordinator.penjadwalan.*')" icon="calendar">
-                Penjadwalan
-            </x-sidebar-link>
+            
+            {{-- Pendaftaran Sempro/Sidang yang perlu diproses --}}
+            <x-sidebar-dropdown label="Pendaftaran" icon="clipboard" :active="request()->routeIs('koordinator.pendaftaran.*')">
+                <x-sidebar-dropdown-link :href="route('koordinator.pendaftaran.index', ['jenis' => 'sempro'])" :active="request()->routeIs('koordinator.pendaftaran.*') && request('jenis') === 'sempro'">
+                    Pendaftaran Sempro
+                </x-sidebar-dropdown-link>
+                <x-sidebar-dropdown-link :href="route('koordinator.pendaftaran.index', ['jenis' => 'sidang'])" :active="request()->routeIs('koordinator.pendaftaran.*') && request('jenis') === 'sidang'">
+                    Pendaftaran Sidang
+                </x-sidebar-dropdown-link>
+            </x-sidebar-dropdown>
+            
+            {{-- Jadwal Pelaksanaan Sempro/Sidang --}}
+            <x-sidebar-dropdown label="Penjadwalan" icon="calendar" :active="request()->routeIs('koordinator.penjadwalan.*')">
+                <x-sidebar-dropdown-link :href="route('koordinator.penjadwalan.index', ['jenis' => 'sempro'])" :active="request()->routeIs('koordinator.penjadwalan.*') && request('jenis') === 'sempro'">
+                    Jadwal Sempro
+                </x-sidebar-dropdown-link>
+                <x-sidebar-dropdown-link :href="route('koordinator.penjadwalan.index', ['jenis' => 'sidang'])" :active="request()->routeIs('koordinator.penjadwalan.*') && request('jenis') === 'sidang'">
+                    Jadwal Sidang
+                </x-sidebar-dropdown-link>
+            </x-sidebar-dropdown>
+            
             <x-sidebar-link :href="route('koordinator.daftar-nilai.index')" :active="request()->routeIs('koordinator.daftar-nilai.*')" icon="chart">
                 Daftar Nilai
             </x-sidebar-link>
+
+            {{-- Fitur Dosen (karena koordinator juga dosen) --}}
+            <div class="px-4 py-2 mt-4">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Dosen</span>
+            </div>
+            <x-sidebar-dropdown label="Proposal" icon="document" :active="request()->routeIs('dosen.validasi-usulan.*') || (request()->routeIs('dosen.bimbingan.*') && request('jenis') === 'proposal') || (request()->routeIs('dosen.persetujuan-sidang.*') && request('jenis') === 'proposal')">
+                <x-sidebar-dropdown-link :href="route('dosen.validasi-usulan.index')" :active="request()->routeIs('dosen.validasi-usulan.*')">
+                    Validasi Usulan
+                </x-sidebar-dropdown-link>
+                <x-sidebar-dropdown-link :href="route('dosen.bimbingan.index', ['jenis' => 'proposal'])" :active="request()->routeIs('dosen.bimbingan.*') && request('jenis') === 'proposal'">
+                    Bimbingan Proposal
+                </x-sidebar-dropdown-link>
+                <x-sidebar-dropdown-link :href="route('dosen.persetujuan-sidang.index', ['jenis' => 'proposal'])" :active="request()->routeIs('dosen.persetujuan-sidang.*') && request('jenis') === 'proposal'">
+                    Persetujuan Seminar
+                </x-sidebar-dropdown-link>
+            </x-sidebar-dropdown>
+            <x-sidebar-dropdown label="Skripsi" icon="book" :active="(request()->routeIs('dosen.bimbingan.*') && request('jenis') === 'skripsi') || (request()->routeIs('dosen.persetujuan-sidang.*') && request('jenis') === 'skripsi')">
+                <x-sidebar-dropdown-link :href="route('dosen.bimbingan.index', ['jenis' => 'skripsi'])" :active="request()->routeIs('dosen.bimbingan.*') && request('jenis') === 'skripsi'">
+                    Bimbingan Skripsi
+                </x-sidebar-dropdown-link>
+                <x-sidebar-dropdown-link :href="route('dosen.persetujuan-sidang.index', ['jenis' => 'skripsi'])" :active="request()->routeIs('dosen.persetujuan-sidang.*') && request('jenis') === 'skripsi'">
+                    Persetujuan Sidang
+                </x-sidebar-dropdown-link>
+            </x-sidebar-dropdown>
+            <x-sidebar-dropdown label="Nilai" icon="chart" :active="request()->routeIs('dosen.nilai-sempro.*') || request()->routeIs('dosen.nilai-sidang.*')">
+                <x-sidebar-dropdown-link :href="route('dosen.nilai-sempro.index')" :active="request()->routeIs('dosen.nilai-sempro.*')">
+                    Nilai Sempro
+                </x-sidebar-dropdown-link>
+                <x-sidebar-dropdown-link :href="route('dosen.nilai-sidang.index')" :active="request()->routeIs('dosen.nilai-sidang.*')">
+                    Nilai Sidang
+                </x-sidebar-dropdown-link>
+            </x-sidebar-dropdown>
         @endif
     </nav>
 </aside>

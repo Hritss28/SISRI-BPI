@@ -12,7 +12,7 @@ class DaftarNilaiController extends Controller
     private function getProdiId()
     {
         $dosen = auth()->user()->dosen;
-        $koordinator = $dosen->koordinatorProdi()->active()->first();
+        $koordinator = $dosen?->activeKoordinatorProdi;
         return $koordinator?->prodi_id;
     }
 
