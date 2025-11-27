@@ -126,7 +126,7 @@ Setelah menjalankan seeder, gunakan akun berikut untuk login:
 
 Jalankan test dengan perintah:
 ```bash
-php artisan test
+php artisan serve
 ```
 
 ## 📝 Lisensi
