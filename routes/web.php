@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\MahasiswaController as AdminMahasiswaController;
 use App\Http\Controllers\Admin\DosenController as AdminDosenController;
 use App\Http\Controllers\Admin\PeriodeController as AdminPeriodeController;
 use App\Http\Controllers\Admin\UnitController as AdminUnitController;
+use App\Http\Controllers\Admin\KoordinatorProdiController as AdminKoordinatorProdiController;
 
 // Mahasiswa Controllers
 use App\Http\Controllers\Mahasiswa\DashboardController as MahasiswaDashboardController;
@@ -66,10 +67,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Mahasiswa Management
     Route::resource('mahasiswa', AdminMahasiswaController::class);
     Route::post('/mahasiswa/{mahasiswa}/toggle-status', [AdminMahasiswaController::class, 'toggleStatus'])->name('mahasiswa.toggle-status');
+    Route::post('/mahasiswa/{mahasiswa}/reset-password', [AdminMahasiswaController::class, 'resetPassword'])->name('mahasiswa.reset-password');
     
     // Dosen Management
     Route::resource('dosen', AdminDosenController::class);
     Route::post('/dosen/{dosen}/toggle-status', [AdminDosenController::class, 'toggleStatus'])->name('dosen.toggle-status');
+    Route::post('/dosen/{dosen}/reset-password', [AdminDosenController::class, 'resetPassword'])->name('dosen.reset-password');
     
     // Periode Management
     Route::resource('periode', AdminPeriodeController::class);
@@ -77,6 +80,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     
     // Unit Management (Fakultas, Jurusan, Prodi)
     Route::resource('unit', AdminUnitController::class);
+    
+    // Koordinator Prodi Management
+    Route::resource('koordinator', AdminKoordinatorProdiController::class)->except(['edit', 'update']);
+    Route::patch('/koordinator/{koordinator}/toggle-status', [AdminKoordinatorProdiController::class, 'toggleStatus'])->name('koordinator.toggle-status');
 });
 
 // ==================== MAHASISWA ROUTES ====================

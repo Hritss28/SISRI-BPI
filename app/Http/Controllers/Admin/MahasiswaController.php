@@ -37,6 +37,7 @@ class MahasiswaController extends Controller
 
         $user = User::create([
             'username' => $request->nim,
+            'name' => $request->nama,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'mahasiswa',
@@ -92,6 +93,7 @@ class MahasiswaController extends Controller
 
         $mahasiswa->user->update([
             'username' => $request->nim,
+            'name' => $request->nama,
             'email' => $request->email,
             'is_active' => $request->boolean('is_active'),
         ]);
@@ -106,5 +108,20 @@ class MahasiswaController extends Controller
         
         return redirect()->route('admin.mahasiswa.index')
             ->with('success', 'Mahasiswa berhasil dihapus.');
+    }
+
+    /**
+     * Reset password mahasiswa ke default
+     */
+    public function resetPassword(Mahasiswa $mahasiswa)
+    {
+        $defaultPassword = 'password123';
+        
+        $mahasiswa->user->update([
+            'password' => Hash::make($defaultPassword),
+        ]);
+
+        return redirect()->back()
+            ->with('success', "Password mahasiswa {$mahasiswa->nama} berhasil direset ke: {$defaultPassword}");
     }
 }

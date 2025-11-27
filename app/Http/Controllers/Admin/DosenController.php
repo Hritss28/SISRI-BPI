@@ -39,6 +39,7 @@ class DosenController extends Controller
 
         $user = User::create([
             'username' => $username,
+            'name' => $request->nama,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'dosen',
@@ -93,6 +94,7 @@ class DosenController extends Controller
         ]);
 
         $dosen->user->update([
+            'name' => $request->nama,
             'email' => $request->email,
             'is_active' => $request->boolean('is_active'),
         ]);
@@ -107,5 +109,20 @@ class DosenController extends Controller
         
         return redirect()->route('admin.dosen.index')
             ->with('success', 'Dosen berhasil dihapus.');
+    }
+
+    /**
+     * Reset password dosen ke default
+     */
+    public function resetPassword(Dosen $dosen)
+    {
+        $defaultPassword = 'password123';
+        
+        $dosen->user->update([
+            'password' => Hash::make($defaultPassword),
+        ]);
+
+        return redirect()->back()
+            ->with('success', "Password dosen {$dosen->nama} berhasil direset ke: {$defaultPassword}");
     }
 }

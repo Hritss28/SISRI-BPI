@@ -8,10 +8,19 @@ use Illuminate\Http\Request;
 
 class UnitController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $units = Unit::with('parent')->orderBy('type')->orderBy('nama')->paginate(15);
-        return view('admin.unit.index', compact('units'));
+        $query = Unit::with('parent')->orderBy('type')->orderBy('nama');
+        
+        // Filter by type if specified
+        if ($request->has('type') && in_array($request->type, ['fakultas', 'jurusan', 'prodi'])) {
+            $query->where('type', $request->type);
+        }
+        
+        $units = $query->paginate(15)->withQueryString();
+        $currentType = $request->type;
+        
+        return view('admin.unit.index', compact('units', 'currentType'));
     }
 
     public function create()

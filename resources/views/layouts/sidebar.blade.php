@@ -68,8 +68,16 @@
             <x-sidebar-link :href="route('admin.periode.index')" :active="request()->routeIs('admin.periode.*')" icon="calendar">
                 Periode
             </x-sidebar-link>
-            <x-sidebar-link :href="route('admin.unit.index')" :active="request()->routeIs('admin.unit.*')" icon="building">
-                Unit
+            <x-sidebar-dropdown label="Unit" icon="building" :active="request()->routeIs('admin.unit.*')">
+                <x-sidebar-dropdown-link :href="route('admin.unit.index', ['type' => 'fakultas'])" :active="request()->routeIs('admin.unit.*') && request('type') === 'fakultas'">
+                    Fakultas
+                </x-sidebar-dropdown-link>
+                <x-sidebar-dropdown-link :href="route('admin.unit.index', ['type' => 'prodi'])" :active="request()->routeIs('admin.unit.*') && request('type') === 'prodi'">
+                    Program Studi
+                </x-sidebar-dropdown-link>
+            </x-sidebar-dropdown>
+            <x-sidebar-link :href="route('admin.koordinator.index')" :active="request()->routeIs('admin.koordinator.*')" icon="badge">
+                Koordinator Prodi
             </x-sidebar-link>
         @endif
 
