@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+
+class Dosen extends Model
+{
+    use HasFactory;
+
+    protected $table = 'dosen';
+
+    protected $fillable = [
+        'user_id',
+        'nip',
+        'nidn',
+        'nama',
+        'prodi_id',
+        'email',
+        'no_hp',
+    ];
+
+    /**
+     * Get the user that owns the dosen.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the prodi of the dosen.
+     */
+    public function prodi(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class, 'prodi_id');
+    }
+
+    /**
+     * Get koordinator prodi.
+     */
+    public function koordinatorProdi(): HasOne
+    {
+        return $this->hasOne(KoordinatorProdi::class);
+    }
+
+    /**
+     * Get usulan pembimbing.
+     */
+    public function usulanPembimbing(): HasMany
+    {
+        return $this->hasMany(UsulanPembimbing::class);
+    }
+
+    /**
+     * Get bimbingan.
+     */
+    public function bimbingan(): HasMany
+    {
+        return $this->hasMany(Bimbingan::class);
+    }
+
+    /**
+     * Get penguji sidang.
+     */
+    public function pengujiSidang(): HasMany
+    {
+        return $this->hasMany(PengujiSidang::class);
+    }
+
+    /**
+     * Get revisi sidang.
+     */
+    public function revisiSidang(): HasMany
+    {
+        return $this->hasMany(RevisiSidang::class);
+    }
+
+    /**
+     * Get nilai.
+     */
+    public function nilai(): HasMany
+    {
+        return $this->hasMany(Nilai::class);
+    }
+}
