@@ -1,10 +1,21 @@
 <x-app-layout>
+    @php
+        $jenis = $pelaksanaan->pendaftaranSidang->jadwalSidang->jenis === 'seminar_proposal' ? 'sempro' : 'sidang';
+        $jenisLabel = $jenis === 'sempro' ? 'Seminar Proposal' : 'Sidang Skripsi';
+    @endphp
+
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Detail Nilai Sidang
-            </h2>
-            <a href="{{ route('koordinator.daftar-nilai.index') }}"
+            <div>
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                    Detail Nilai {{ $jenisLabel }}
+                </h2>
+                <p class="text-sm text-gray-500 mt-1">
+                    {{ $pelaksanaan->pendaftaranSidang->topik->mahasiswa->user->name ?? '-' }} - 
+                    {{ $pelaksanaan->pendaftaranSidang->topik->mahasiswa->nim ?? '-' }}
+                </p>
+            </div>
+            <a href="{{ route('koordinator.daftar-nilai.index', ['jenis' => $jenis]) }}"
                 class="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-200">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -19,7 +30,7 @@
             <!-- Info Mahasiswa & Sidang -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Sidang</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi {{ $jenisLabel }}</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <p class="text-sm text-gray-500">Nama Mahasiswa</p>
@@ -30,8 +41,8 @@
                             <p class="font-medium">{{ $pelaksanaan->pendaftaranSidang->topik->mahasiswa->nim ?? '-' }}</p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500">Jenis Sidang</p>
-                            @if($pelaksanaan->pendaftaranSidang->jadwalSidang->jenis === 'seminar_proposal')
+                            <p class="text-sm text-gray-500">Jenis</p>
+                            @if($jenis === 'sempro')
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                     Seminar Proposal
                                 </span>
@@ -42,12 +53,12 @@
                             @endif
                         </div>
                         <div class="md:col-span-3">
-                            <p class="text-sm text-gray-500">Judul Skripsi</p>
+                            <p class="text-sm text-gray-500">Judul {{ $jenis === 'sempro' ? 'Proposal' : 'Skripsi' }}</p>
                             <p class="font-medium">{{ $pelaksanaan->pendaftaranSidang->topik->judul ?? '-' }}</p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500">Tanggal Sidang</p>
-                            <p class="font-medium">{{ \Carbon\Carbon::parse($pelaksanaan->tanggal_sidang)->format('d F Y, H:i') }}</p>
+                            <p class="text-sm text-gray-500">Tanggal {{ $jenisLabel }}</p>
+                            <p class="font-medium">{{ \Carbon\Carbon::parse($pelaksanaan->tanggal_sidang)->format('d F Y, H:i') }} WIB</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-500">Tempat</p>

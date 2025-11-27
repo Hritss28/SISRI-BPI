@@ -246,6 +246,153 @@ class DatabaseSeeder extends Seeder
             'no_hp' => '081333333333',
             'email' => 'hendra@sisri.test',
         ]);
+
+        // Dosen 4
+        $user4 = User::create([
+            'name' => 'Prof. Dr. Bambang Sutrisno, M.Sc.',
+            'username' => '196505101990031001',
+            'email' => 'bambang@sisri.test',
+            'password' => Hash::make('password'),
+            'role' => 'dosen',
+            'is_active' => true,
+        ]);
+        $user4->assignRole('dosen');
+
+        Dosen::create([
+            'user_id' => $user4->id,
+            'nip' => '196505101990031001',
+            'nidn' => '0010056501',
+            'nama' => 'Prof. Dr. Bambang Sutrisno, M.Sc.',
+            'prodi_id' => $units['prodi']->id,
+            'no_hp' => '081555555555',
+            'email' => 'bambang@sisri.test',
+        ]);
+
+        // Dosen 5
+        $user5 = User::create([
+            'name' => 'Dr. Sri Wahyuni, M.T.',
+            'username' => '197802202003122001',
+            'email' => 'sri@sisri.test',
+            'password' => Hash::make('password'),
+            'role' => 'dosen',
+            'is_active' => true,
+        ]);
+        $user5->assignRole('dosen');
+
+        Dosen::create([
+            'user_id' => $user5->id,
+            'nip' => '197802202003122001',
+            'nidn' => '0020027801',
+            'nama' => 'Dr. Sri Wahyuni, M.T.',
+            'prodi_id' => $units['prodi']->id,
+            'no_hp' => '081666666666',
+            'email' => 'sri@sisri.test',
+        ]);
+
+        // Dosen 6
+        $user6 = User::create([
+            'name' => 'Dr. Eko Prasetyo, M.Kom.',
+            'username' => '198107152006041001',
+            'email' => 'eko@sisri.test',
+            'password' => Hash::make('password'),
+            'role' => 'dosen',
+            'is_active' => true,
+        ]);
+        $user6->assignRole('dosen');
+
+        Dosen::create([
+            'user_id' => $user6->id,
+            'nip' => '198107152006041001',
+            'nidn' => '0015078101',
+            'nama' => 'Dr. Eko Prasetyo, M.Kom.',
+            'prodi_id' => $units['prodi']->id,
+            'no_hp' => '081777777777',
+            'email' => 'eko@sisri.test',
+        ]);
+
+        // Dosen 7
+        $user7 = User::create([
+            'name' => 'Dr. Nurul Hidayah, M.Si.',
+            'username' => '198309102008012001',
+            'email' => 'nurul@sisri.test',
+            'password' => Hash::make('password'),
+            'role' => 'dosen',
+            'is_active' => true,
+        ]);
+        $user7->assignRole('dosen');
+
+        Dosen::create([
+            'user_id' => $user7->id,
+            'nip' => '198309102008012001',
+            'nidn' => '0010098301',
+            'nama' => 'Dr. Nurul Hidayah, M.Si.',
+            'prodi_id' => $units['prodi']->id,
+            'no_hp' => '081888888888',
+            'email' => 'nurul@sisri.test',
+        ]);
+
+        // Dosen 8
+        $user8 = User::create([
+            'name' => 'Dr. Andi Firmansyah, M.Eng.',
+            'username' => '198512012010121001',
+            'email' => 'andi@sisri.test',
+            'password' => Hash::make('password'),
+            'role' => 'dosen',
+            'is_active' => true,
+        ]);
+        $user8->assignRole('dosen');
+
+        Dosen::create([
+            'user_id' => $user8->id,
+            'nip' => '198512012010121001',
+            'nidn' => '0001128501',
+            'nama' => 'Dr. Andi Firmansyah, M.Eng.',
+            'prodi_id' => $units['prodi']->id,
+            'no_hp' => '081999999999',
+            'email' => 'andi@sisri.test',
+        ]);
+
+        // Dosen 9
+        $user9 = User::create([
+            'name' => 'Dr. Maya Sari, M.Kom.',
+            'username' => '198706152012042001',
+            'email' => 'maya@sisri.test',
+            'password' => Hash::make('password'),
+            'role' => 'dosen',
+            'is_active' => true,
+        ]);
+        $user9->assignRole('dosen');
+
+        Dosen::create([
+            'user_id' => $user9->id,
+            'nip' => '198706152012042001',
+            'nidn' => '0015068701',
+            'nama' => 'Dr. Maya Sari, M.Kom.',
+            'prodi_id' => $units['prodi']->id,
+            'no_hp' => '082111111111',
+            'email' => 'maya@sisri.test',
+        ]);
+
+        // Dosen 10
+        $user10 = User::create([
+            'name' => 'Dr. Rudi Hartono, M.T.',
+            'username' => '198901202015041001',
+            'email' => 'rudi@sisri.test',
+            'password' => Hash::make('password'),
+            'role' => 'dosen',
+            'is_active' => true,
+        ]);
+        $user10->assignRole('dosen');
+
+        Dosen::create([
+            'user_id' => $user10->id,
+            'nip' => '198901202015041001',
+            'nidn' => '0020018901',
+            'nama' => 'Dr. Rudi Hartono, M.T.',
+            'prodi_id' => $units['prodi']->id,
+            'no_hp' => '082222222222',
+            'email' => 'rudi@sisri.test',
+        ]);
     }
 
     private function createKoordinatorUser(array $units): void

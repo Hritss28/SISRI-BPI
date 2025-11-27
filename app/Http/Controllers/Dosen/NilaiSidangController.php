@@ -24,12 +24,13 @@ class NilaiSidangController extends Controller
             return redirect()->route('dashboard')->with('error', 'Anda tidak terdaftar sebagai dosen.');
         }
 
-        // Get penugasan as penguji for sidang_skripsi only
+        // Get penugasan as penguji for sidang_skripsi only (hanya penguji, bukan pembimbing)
         $penugasan = PengujiSidang::with([
             'pelaksanaanSidang.pendaftaranSidang.topik.mahasiswa.user',
             'pelaksanaanSidang.pendaftaranSidang.topik'
         ])
             ->where('dosen_id', $dosen->id)
+            ->where('role', 'like', 'penguji_%') // Hanya penguji_1, penguji_2, penguji_3
             ->whereHas('pelaksanaanSidang.pendaftaranSidang', function ($query) {
                 $query->where('jenis', 'sidang_skripsi');
             })
@@ -58,13 +59,14 @@ class NilaiSidangController extends Controller
             return redirect()->route('dosen.nilai-sidang.index')->with('error', 'Pelaksanaan ini bukan sidang skripsi.');
         }
 
-        // Get penugasan for this dosen
+        // Get penugasan for this dosen (hanya penguji, bukan pembimbing)
         $penugasan = PengujiSidang::where('pelaksanaan_sidang_id', $pelaksanaan->id)
             ->where('dosen_id', $dosen->id)
+            ->where('role', 'like', 'penguji_%') // Hanya penguji_1, penguji_2, penguji_3
             ->first();
 
         if (!$penugasan) {
-            return redirect()->route('dosen.nilai-sidang.index')->with('error', 'Anda tidak ditugaskan sebagai penguji untuk sidang ini.');
+            return redirect()->route('dosen.nilai-sidang.index')->with('error', 'Anda tidak ditugaskan sebagai penguji untuk sidang ini. Pembimbing tidak dapat memberikan nilai.');
         }
 
         // Check existing nilai - using pelaksanaan_sidang_id + dosen_id + jenis_nilai
@@ -93,13 +95,14 @@ class NilaiSidangController extends Controller
             return redirect()->route('dosen.nilai-sidang.index')->with('error', 'Pelaksanaan ini bukan sidang skripsi.');
         }
 
-        // Get penugasan
+        // Get penugasan (hanya penguji, bukan pembimbing)
         $penugasan = PengujiSidang::where('pelaksanaan_sidang_id', $pelaksanaan->id)
             ->where('dosen_id', $dosen->id)
+            ->where('role', 'like', 'penguji_%') // Hanya penguji_1, penguji_2, penguji_3
             ->first();
 
         if (!$penugasan) {
-            return redirect()->route('dosen.nilai-sidang.index')->with('error', 'Anda tidak ditugaskan sebagai penguji untuk sidang ini.');
+            return redirect()->route('dosen.nilai-sidang.index')->with('error', 'Anda tidak ditugaskan sebagai penguji untuk sidang ini. Pembimbing tidak dapat memberikan nilai.');
         }
 
         $request->validate([

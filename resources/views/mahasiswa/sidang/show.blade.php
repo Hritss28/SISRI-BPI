@@ -169,12 +169,12 @@
                         <div class="mt-4 pt-4 border-t">
                             <p class="text-sm text-gray-500 mb-3">Dosen Pembimbing</p>
                             <div class="flex flex-wrap gap-4">
-                                @foreach($pendaftaran->topik->usulanPembimbing->sortBy('urutan') as $usulan)
+                                @foreach($pendaftaran->topik->usulanPembimbing->where('status', 'diterima')->sortBy('urutan') as $usulan)
                                 <div class="flex items-center gap-2">
                                     <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                                         <span class="text-sm font-bold text-blue-600">{{ $usulan->urutan }}</span>
                                     </div>
-                                    <span class="text-sm text-gray-700">{{ $usulan->dosen->nama ?? '-' }}</span>
+                                    <span class="text-sm text-gray-700">{{ $usulan->dosen->user->name ?? '-' }}</span>
                                 </div>
                                 @endforeach
                             </div>
@@ -193,39 +193,66 @@
                             <div>
                                 <p class="text-sm text-gray-500 mb-1">Tanggal & Waktu</p>
                                 <p class="font-medium text-gray-800">
-                                    @if($pendaftaran->pelaksanaanSidang->tanggal)
-                                        {{ \Carbon\Carbon::parse($pendaftaran->pelaksanaanSidang->tanggal)->format('d F Y') }}
+                                    @if($pendaftaran->pelaksanaanSidang->tanggal_sidang)
+                                        {{ \Carbon\Carbon::parse($pendaftaran->pelaksanaanSidang->tanggal_sidang)->format('l, d F Y') }}
                                     @else
                                         Belum ditentukan
                                     @endif
                                 </p>
-                                @if($pendaftaran->pelaksanaanSidang->waktu_mulai)
+                                @if($pendaftaran->pelaksanaanSidang->tanggal_sidang)
                                 <p class="text-sm text-gray-600">
-                                    {{ $pendaftaran->pelaksanaanSidang->waktu_mulai }} - {{ $pendaftaran->pelaksanaanSidang->waktu_selesai ?? '...' }} WIB
+                                    {{ \Carbon\Carbon::parse($pendaftaran->pelaksanaanSidang->tanggal_sidang)->format('H:i') }} WIB
                                 </p>
                                 @endif
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500 mb-1">Ruangan</p>
                                 <p class="font-medium text-gray-800">
-                                    {{ $pendaftaran->pelaksanaanSidang->ruangan ?? 'Belum ditentukan' }}
+                                    {{ $pendaftaran->pelaksanaanSidang->tempat ?? 'Belum ditentukan' }}
                                 </p>
                             </div>
                         </div>
                         
-                        <!-- Penguji -->
+                        <!-- Pembimbing dan Penguji -->
                         @if($pendaftaran->pelaksanaanSidang->pengujiSidang && $pendaftaran->pelaksanaanSidang->pengujiSidang->isNotEmpty())
                         <div class="mt-6 pt-4 border-t">
-                            <p class="text-sm text-gray-500 mb-3">Dosen Penguji</p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                @foreach($pendaftaran->pelaksanaanSidang->pengujiSidang->sortBy('urutan') as $penguji)
-                                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                    <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                        <span class="text-sm font-bold text-purple-600">{{ $penguji->urutan }}</span>
+                            @php
+                                $pembimbingList = $pendaftaran->pelaksanaanSidang->pengujiSidang->filter(function($p) {
+                                    return str_starts_with($p->role, 'pembimbing_');
+                                })->sortBy('role');
+                                
+                                $pengujiList = $pendaftaran->pelaksanaanSidang->pengujiSidang->filter(function($p) {
+                                    return str_starts_with($p->role, 'penguji_');
+                                })->sortBy('role');
+                            @endphp
+                            
+                            <!-- Pembimbing -->
+                            <p class="text-sm text-gray-500 mb-3">Dosen Pembimbing</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                @foreach($pembimbingList as $pembimbing)
+                                <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <span class="text-sm font-bold text-blue-600">{{ str_replace('pembimbing_', '', $pembimbing->role) }}</span>
                                     </div>
                                     <div>
-                                        <p class="font-medium text-gray-800">{{ $penguji->dosen->nama ?? '-' }}</p>
-                                        <p class="text-xs text-gray-500">Penguji {{ $penguji->urutan }}</p>
+                                        <p class="font-medium text-gray-800">{{ $pembimbing->dosen->user->name ?? '-' }}</p>
+                                        <p class="text-xs text-gray-500">Pembimbing {{ str_replace('pembimbing_', '', $pembimbing->role) }}</p>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <!-- Penguji -->
+                            <p class="text-sm text-gray-500 mb-3 mt-4">Dosen Penguji</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                @foreach($pengujiList as $penguji)
+                                <div class="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+                                    <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                        <span class="text-sm font-bold text-purple-600">{{ str_replace('penguji_', '', $penguji->role) }}</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">{{ $penguji->dosen->user->name ?? '-' }}</p>
+                                        <p class="text-xs text-gray-500">Penguji {{ str_replace('penguji_', '', $penguji->role) }}</p>
                                     </div>
                                 </div>
                                 @endforeach
@@ -302,7 +329,7 @@
                             <div class="p-4 bg-gray-50 rounded-lg">
                                 <div class="flex items-center justify-between">
                                     <div>
-                                        <p class="text-sm text-gray-500">{{ $n->dosen->nama ?? 'Dosen' }}</p>
+                                        <p class="text-sm text-gray-500">{{ $n->dosen->user->name ?? 'Dosen' }}</p>
                                         <p class="text-xs text-gray-400">{{ ucfirst(str_replace('_', ' ', $n->jenis_nilai)) }}</p>
                                     </div>
                                     <p class="text-xl font-bold text-gray-800">{{ number_format($n->nilai, 2) }}</p>
@@ -396,7 +423,7 @@
                         </div>
                         @endif
                         
-                        @if($pendaftaran->pelaksanaanSidang && $pendaftaran->pelaksanaanSidang->tanggal)
+                        @if($pendaftaran->pelaksanaanSidang && $pendaftaran->pelaksanaanSidang->tanggal_sidang)
                         <div class="flex gap-3">
                             <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
                                 <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
@@ -405,7 +432,7 @@
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-gray-800">Jadwal sidang ditentukan</p>
-                                <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($pendaftaran->pelaksanaanSidang->tanggal)->format('d M Y') }}</p>
+                                <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($pendaftaran->pelaksanaanSidang->tanggal_sidang)->format('d M Y, H:i') }}</p>
                             </div>
                         </div>
                         @endif

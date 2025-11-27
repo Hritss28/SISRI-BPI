@@ -254,6 +254,16 @@ class PenjadwalanController extends Controller
             'penguji_2_id' => 'required|exists:dosen,id|different:penguji_1_id',
         ]);
 
+        // Cek bentrokan jadwal (tanggal & tempat yang sama)
+        $existingSchedule = PelaksanaanSidang::where('tanggal_sidang', $request->tanggal_sidang)
+            ->where('tempat', $request->tempat)
+            ->where('status', '!=', 'selesai')
+            ->first();
+
+        if ($existingSchedule) {
+            return back()->withInput()->with('error', 'Jadwal bentrok! Ruangan "' . $request->tempat . '" sudah digunakan pada tanggal tersebut untuk sidang lain.');
+        }
+
         $pelaksanaan = PelaksanaanSidang::create([
             'pendaftaran_sidang_id' => $pendaftaran->id,
             'tanggal_sidang' => $request->tanggal_sidang,

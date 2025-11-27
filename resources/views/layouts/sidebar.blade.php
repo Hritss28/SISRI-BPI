@@ -164,9 +164,14 @@
                 </x-sidebar-dropdown-link>
             </x-sidebar-dropdown>
             
-            <x-sidebar-link :href="route('koordinator.daftar-nilai.index')" :active="request()->routeIs('koordinator.daftar-nilai.*')" icon="chart">
-                Daftar Nilai
-            </x-sidebar-link>
+            <x-sidebar-dropdown label="Daftar Nilai" icon="chart" :active="request()->routeIs('koordinator.daftar-nilai.*')">
+                <x-sidebar-dropdown-link :href="route('koordinator.daftar-nilai.index', ['jenis' => 'sempro'])" :active="request()->routeIs('koordinator.daftar-nilai.*') && request('jenis') === 'sempro'">
+                    Nilai Sempro
+                </x-sidebar-dropdown-link>
+                <x-sidebar-dropdown-link :href="route('koordinator.daftar-nilai.index', ['jenis' => 'sidang'])" :active="request()->routeIs('koordinator.daftar-nilai.*') && request('jenis') === 'sidang'">
+                    Nilai Sidang
+                </x-sidebar-dropdown-link>
+            </x-sidebar-dropdown>
 
             {{-- Fitur Dosen (karena koordinator juga dosen) --}}
             <div class="px-4 py-2 mt-4">

@@ -77,7 +77,8 @@ class PendaftaranController extends Controller
                 $q->orderBy('created_at', 'desc')->limit(5);
             },
             'jadwalSidang',
-            'pelaksanaanSidang.pengujiSidang.dosen.user'
+            'pelaksanaanSidang.pengujiSidang.dosen.user',
+            'pelaksanaanSidang.nilai.dosen.user'
         ]);
 
         // Daftar dosen untuk penguji (exclude pembimbing)
@@ -107,9 +108,20 @@ class PendaftaranController extends Controller
             'tanggal_sidang' => 'required|date|after:today',
             'tempat' => 'required|string|max:255',
             'penguji_1_id' => 'required|exists:dosen,id',
-            'penguji_2_id' => 'nullable|exists:dosen,id|different:penguji_1_id',
+            'penguji_2_id' => 'required|exists:dosen,id|different:penguji_1_id',
+            'penguji_3_id' => 'required|exists:dosen,id|different:penguji_1_id|different:penguji_2_id',
             'catatan' => 'nullable|string',
         ]);
+
+        // Cek bentrokan jadwal (tanggal & tempat yang sama)
+        $existingSchedule = PelaksanaanSidang::where('tanggal_sidang', $request->tanggal_sidang)
+            ->where('tempat', $request->tempat)
+            ->where('status', '!=', 'selesai')
+            ->first();
+
+        if ($existingSchedule) {
+            return back()->withInput()->with('error', 'Jadwal bentrok! Ruangan "' . $request->tempat . '" sudah digunakan pada tanggal tersebut untuk sidang lain.');
+        }
 
         // Update status koordinator
         $pendaftaran->update([
@@ -146,14 +158,19 @@ class PendaftaranController extends Controller
             'role' => 'penguji_1',
         ]);
 
-        // Tambahkan penguji 2 jika ada
-        if ($request->penguji_2_id) {
-            PengujiSidang::create([
-                'pelaksanaan_sidang_id' => $pelaksanaan->id,
-                'dosen_id' => $request->penguji_2_id,
-                'role' => 'penguji_2',
-            ]);
-        }
+        // Tambahkan penguji 2
+        PengujiSidang::create([
+            'pelaksanaan_sidang_id' => $pelaksanaan->id,
+            'dosen_id' => $request->penguji_2_id,
+            'role' => 'penguji_2',
+        ]);
+
+        // Tambahkan penguji 3
+        PengujiSidang::create([
+            'pelaksanaan_sidang_id' => $pelaksanaan->id,
+            'dosen_id' => $request->penguji_3_id,
+            'role' => 'penguji_3',
+        ]);
 
         $jenis = $pendaftaran->jenis === 'seminar_proposal' ? 'sempro' : 'sidang';
 
@@ -244,8 +261,20 @@ class PendaftaranController extends Controller
             'tanggal_sidang' => 'required|date',
             'tempat' => 'required|string|max:255',
             'penguji_1_id' => 'required|exists:dosen,id',
-            'penguji_2_id' => 'nullable|exists:dosen,id|different:penguji_1_id',
+            'penguji_2_id' => 'required|exists:dosen,id|different:penguji_1_id',
+            'penguji_3_id' => 'required|exists:dosen,id|different:penguji_1_id|different:penguji_2_id',
         ]);
+
+        // Cek bentrokan jadwal (tanggal & tempat yang sama, exclude current)
+        $existingSchedule = PelaksanaanSidang::where('tanggal_sidang', $request->tanggal_sidang)
+            ->where('tempat', $request->tempat)
+            ->where('id', '!=', $pelaksanaan->id)
+            ->where('status', '!=', 'selesai')
+            ->first();
+
+        if ($existingSchedule) {
+            return back()->withInput()->with('error', 'Jadwal bentrok! Ruangan "' . $request->tempat . '" sudah digunakan pada tanggal tersebut untuk sidang lain.');
+        }
 
         // Update pelaksanaan
         $pelaksanaan->update([
@@ -254,7 +283,7 @@ class PendaftaranController extends Controller
         ]);
 
         // Update penguji (hapus penguji lama, tambah baru)
-        $pelaksanaan->pengujiSidang()->whereIn('role', ['penguji_1', 'penguji_2'])->delete();
+        $pelaksanaan->pengujiSidang()->whereIn('role', ['penguji_1', 'penguji_2', 'penguji_3'])->delete();
 
         PengujiSidang::create([
             'pelaksanaan_sidang_id' => $pelaksanaan->id,
@@ -262,13 +291,17 @@ class PendaftaranController extends Controller
             'role' => 'penguji_1',
         ]);
 
-        if ($request->penguji_2_id) {
-            PengujiSidang::create([
-                'pelaksanaan_sidang_id' => $pelaksanaan->id,
-                'dosen_id' => $request->penguji_2_id,
-                'role' => 'penguji_2',
-            ]);
-        }
+        PengujiSidang::create([
+            'pelaksanaan_sidang_id' => $pelaksanaan->id,
+            'dosen_id' => $request->penguji_2_id,
+            'role' => 'penguji_2',
+        ]);
+
+        PengujiSidang::create([
+            'pelaksanaan_sidang_id' => $pelaksanaan->id,
+            'dosen_id' => $request->penguji_3_id,
+            'role' => 'penguji_3',
+        ]);
 
         $jenis = $pendaftaran->jenis === 'seminar_proposal' ? 'sempro' : 'sidang';
 

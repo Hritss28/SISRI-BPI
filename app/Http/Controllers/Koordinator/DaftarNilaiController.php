@@ -16,7 +16,7 @@ class DaftarNilaiController extends Controller
         return $koordinator?->prodi_id;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $prodiId = $this->getProdiId();
 
@@ -25,15 +25,19 @@ class DaftarNilaiController extends Controller
                 ->with('error', 'Anda tidak memiliki akses sebagai koordinator.');
         }
 
-        $pelaksanaans = PelaksanaanSidang::whereHas('pendaftaranSidang.jadwalSidang', function ($q) use ($prodiId) {
-            $q->where('prodi_id', $prodiId);
+        $jenis = $request->get('jenis', 'sempro');
+        $jenisDb = $jenis === 'sempro' ? 'seminar_proposal' : 'sidang_skripsi';
+
+        $pelaksanaans = PelaksanaanSidang::whereHas('pendaftaranSidang.jadwalSidang', function ($q) use ($prodiId, $jenisDb) {
+            $q->where('prodi_id', $prodiId)
+              ->where('jenis', $jenisDb);
         })
-        ->with(['pendaftaranSidang.topik.mahasiswa', 'nilai.dosen'])
+        ->with(['pendaftaranSidang.topik.mahasiswa.user', 'pendaftaranSidang.jadwalSidang', 'nilai.dosen'])
         ->completed()
         ->orderBy('tanggal_sidang', 'desc')
         ->paginate(15);
 
-        return view('koordinator.daftar-nilai.index', compact('pelaksanaans'));
+        return view('koordinator.daftar-nilai.index', compact('pelaksanaans', 'jenis'));
     }
 
     public function show(PelaksanaanSidang $pelaksanaan)

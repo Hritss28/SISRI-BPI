@@ -14,7 +14,9 @@ class NilaiController extends Controller
     {
         $dosen = auth()->user()->dosen;
 
+        // Hanya ambil penugasan sebagai penguji (bukan pembimbing)
         $pengujiSidangs = PengujiSidang::where('dosen_id', $dosen->id)
+            ->where('role', 'like', 'penguji_%') // Hanya role penguji_1, penguji_2, penguji_3
             ->with(['pelaksanaanSidang.pendaftaranSidang.topik.mahasiswa', 'pelaksanaanSidang.nilais'])
             ->whereHas('pelaksanaanSidang', function ($query) {
                 $query->where('status', 'selesai');
@@ -29,13 +31,14 @@ class NilaiController extends Controller
     {
         $dosen = auth()->user()->dosen;
 
-        // Cek apakah dosen adalah penguji
+        // Cek apakah dosen adalah penguji (bukan pembimbing)
         $penguji = PengujiSidang::where('pelaksanaan_sidang_id', $pelaksanaan->id)
             ->where('dosen_id', $dosen->id)
+            ->where('role', 'like', 'penguji_%') // Hanya role penguji_1, penguji_2, penguji_3
             ->first();
 
         if (!$penguji) {
-            abort(403);
+            abort(403, 'Anda tidak memiliki akses untuk memberi nilai. Hanya penguji yang dapat memberi nilai.');
         }
 
         $pelaksanaan->load('pendaftaranSidang.topik.mahasiswa');
@@ -52,13 +55,14 @@ class NilaiController extends Controller
     {
         $dosen = auth()->user()->dosen;
 
-        // Cek apakah dosen adalah penguji
+        // Cek apakah dosen adalah penguji (bukan pembimbing)
         $penguji = PengujiSidang::where('pelaksanaan_sidang_id', $pelaksanaan->id)
             ->where('dosen_id', $dosen->id)
+            ->where('role', 'like', 'penguji_%') // Hanya role penguji_1, penguji_2, penguji_3
             ->first();
 
         if (!$penguji) {
-            abort(403);
+            abort(403, 'Anda tidak memiliki akses untuk memberi nilai. Hanya penguji yang dapat memberi nilai.');
         }
 
         $request->validate([

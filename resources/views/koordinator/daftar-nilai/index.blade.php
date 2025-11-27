@@ -1,8 +1,24 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Daftar Nilai Sidang
-        </h2>
+        <div class="flex justify-between items-center">
+            <div>
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                    Daftar Nilai {{ $jenis === 'sempro' ? 'Seminar Proposal' : 'Sidang Skripsi' }}
+                </h2>
+                <p class="text-sm text-gray-500 mt-1">Daftar nilai mahasiswa yang telah melaksanakan {{ $jenis === 'sempro' ? 'seminar proposal' : 'sidang skripsi' }}</p>
+            </div>
+            <!-- Tab Navigation -->
+            <div class="flex space-x-2">
+                <a href="{{ route('koordinator.daftar-nilai.index', ['jenis' => 'sempro']) }}"
+                    class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium {{ $jenis === 'sempro' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                    Sempro
+                </a>
+                <a href="{{ route('koordinator.daftar-nilai.index', ['jenis' => 'sidang']) }}"
+                    class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium {{ $jenis === 'sidang' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                    Sidang
+                </a>
+            </div>
+        </div>
     </x-slot>
 
     <div class="py-12">
@@ -20,23 +36,26 @@
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mahasiswa</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul Skripsi</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Sidang</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul {{ $jenis === 'sempro' ? 'Proposal' : 'Skripsi' }}</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai Rata-rata</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    @foreach($pelaksanaans as $pelaksanaan)
+                                    @foreach($pelaksanaans as $index => $pelaksanaan)
                                         @php
                                             $nilaiUjian = $pelaksanaan->nilai->where('jenis_nilai', 'ujian');
                                             $nilaiRata = $nilaiUjian->count() > 0 ? $nilaiUjian->avg('nilai') : null;
                                             $isLulus = $nilaiRata !== null && $nilaiRata >= 55;
                                         @endphp
                                         <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {{ $pelaksanaans->firstItem() + $index }}
+                                            </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <div class="text-sm font-medium text-gray-900">
                                                     {{ $pelaksanaan->pendaftaranSidang->topik->mahasiswa->user->name ?? '-' }}
@@ -51,18 +70,7 @@
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                @if($pelaksanaan->pendaftaranSidang->jadwalSidang->jenis === 'seminar_proposal')
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                                        Sempro
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                        Sidang
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ \Carbon\Carbon::parse($pelaksanaan->tanggal_sidang)->format('d M Y') }}
+                                                {{ \Carbon\Carbon::parse($pelaksanaan->tanggal_sidang)->format('d M Y, H:i') }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 @if($nilaiRata !== null)
@@ -101,15 +109,15 @@
                         </div>
 
                         <div class="mt-4">
-                            {{ $pelaksanaans->links() }}
+                            {{ $pelaksanaans->appends(['jenis' => $jenis])->links() }}
                         </div>
                     @else
                         <div class="text-center py-8">
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                             </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada sidang yang selesai</h3>
-                            <p class="mt-1 text-sm text-gray-500">Daftar nilai akan muncul setelah sidang dilaksanakan dan dinilai.</p>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada {{ $jenis === 'sempro' ? 'seminar proposal' : 'sidang skripsi' }} yang selesai</h3>
+                            <p class="mt-1 text-sm text-gray-500">Daftar nilai akan muncul setelah {{ $jenis === 'sempro' ? 'seminar proposal' : 'sidang skripsi' }} dilaksanakan dan dinilai.</p>
                         </div>
                     @endif
                 </div>
