@@ -109,7 +109,6 @@
                                                         <form action="{{ route('koordinator.pendaftaran.complete-pelaksanaan', $pendaftaran->pelaksanaanSidang) }}" 
                                                             method="POST" class="inline"
                                                             id="complete-sidang-{{ $pendaftaran->id }}">
-                                                            id="complete-sidang-{{ $pendaftaran->id }}">
                                                             @csrf
                                                             <button type="button" onclick="confirmAction('complete-sidang-{{ $pendaftaran->id }}', 'Selesaikan Sidang', 'Tandai sidang ini selesai?', 'Selesaikan', 'success')" class="text-purple-600 hover:text-purple-900">
                                                                 Selesaikan
