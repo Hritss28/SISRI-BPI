@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bimbingan;
+use App\Models\BimbinganHistory;
 use Illuminate\Http\Request;
 
 class BimbinganController extends Controller
@@ -31,7 +32,7 @@ class BimbinganController extends Controller
             abort(403);
         }
 
-        $bimbingan->load('topik.mahasiswa');
+        $bimbingan->load('topik.mahasiswa', 'histories');
 
         return view('dosen.bimbingan.show', compact('bimbingan'));
     }
@@ -57,6 +58,15 @@ class BimbinganController extends Controller
             'status' => $request->status,
             'pesan_dosen' => $request->pesan_dosen,
             'tanggal_respon' => now(),
+        ]);
+
+        // Create history for dosen response
+        BimbinganHistory::create([
+            'bimbingan_id' => $bimbingan->id,
+            'status' => $request->status,
+            'aksi' => 'direspon',
+            'catatan' => $request->pesan_dosen,
+            'oleh' => 'dosen',
         ]);
 
         $message = $request->status === 'disetujui' 

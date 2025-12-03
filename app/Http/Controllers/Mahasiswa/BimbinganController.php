@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bimbingan;
+use App\Models\BimbinganHistory;
 use App\Models\TopikSkripsi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -94,7 +95,7 @@ class BimbinganController extends Controller
             $filePath = $request->file('file_bimbingan')->store('bimbingan', 'public');
         }
 
-        Bimbingan::create([
+        $bimbingan = Bimbingan::create([
             'topik_id' => $topik->id,
             'dosen_id' => $request->dosen_id,
             'jenis' => $request->jenis,
@@ -102,6 +103,16 @@ class BimbinganController extends Controller
             'file_bimbingan' => $filePath,
             'pesan_mahasiswa' => $request->pesan_mahasiswa,
             'status' => 'menunggu',
+        ]);
+
+        // Create history
+        BimbinganHistory::create([
+            'bimbingan_id' => $bimbingan->id,
+            'status' => 'menunggu',
+            'aksi' => 'diajukan',
+            'catatan' => $request->pesan_mahasiswa,
+            'oleh' => 'mahasiswa',
+            'file' => $filePath,
         ]);
 
         return redirect()->route('mahasiswa.bimbingan.index', ['jenis' => $request->jenis])
@@ -120,6 +131,8 @@ class BimbinganController extends Controller
         if ($bimbingan->topik->mahasiswa_id !== $mahasiswa->id) {
             abort(403);
         }
+
+        $bimbingan->load('histories');
 
         return view('mahasiswa.bimbingan.show', compact('bimbingan'));
     }
@@ -156,6 +169,16 @@ class BimbinganController extends Controller
             'file_revisi' => $filePath,
             'pesan_mahasiswa' => $request->pesan_mahasiswa,
             'status' => 'menunggu',
+        ]);
+
+        // Create history for revision upload
+        BimbinganHistory::create([
+            'bimbingan_id' => $bimbingan->id,
+            'status' => 'menunggu',
+            'aksi' => 'upload_revisi',
+            'catatan' => $request->pesan_mahasiswa ?? 'Mahasiswa mengupload revisi',
+            'oleh' => 'mahasiswa',
+            'file' => $filePath,
         ]);
 
         return back()->with('success', 'Revisi berhasil diupload.');

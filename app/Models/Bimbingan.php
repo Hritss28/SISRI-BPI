@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Bimbingan extends Model
 {
@@ -48,6 +49,14 @@ class Bimbingan extends Model
     public function dosen(): BelongsTo
     {
         return $this->belongsTo(Dosen::class);
+    }
+
+    /**
+     * Get the histories.
+     */
+    public function histories(): HasMany
+    {
+        return $this->hasMany(BimbinganHistory::class)->orderBy('created_at', 'asc');
     }
 
     /**
