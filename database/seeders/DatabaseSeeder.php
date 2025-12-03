@@ -184,223 +184,74 @@ class DatabaseSeeder extends Seeder
 
     private function createDosenUsers(array $units): void
     {
-        // Dosen 1
-        $user1 = User::create([
-            'name' => 'Dr. Agus Wijaya, M.Kom.',
-            'username' => '197001011995121001',
-            'email' => 'agus@sisri.test',
-            'password' => Hash::make('password'),
-            'role' => 'dosen',
-            'is_active' => true,
-        ]);
-        $user1->assignRole('dosen');
+        // Data dosen dari database siakad_db_nest
+        // Note: Dr. Fika Hastarita Rachman sudah menjadi Koordinator, jadi tidak dimasukkan di sini
+        $dosenData = [
+            ['nip' => '19740610200812', 'nama' => 'Abdullah Basuki Rahmat, S.Si., M.T.', 'email' => 'abdullah.basuki@if.trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19860926201404', 'nama' => 'Ach Khozaimi, S.Kom., M.Kom.', 'email' => 'khozaimi@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19810109200604', 'nama' => 'Achmad Jauhari, S.T., M.Kom.', 'email' => 'jauhari@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19800503200312', 'nama' => 'Andharini Dwi Cahyani, S.Kom., M.Kom., Ph.D.', 'email' => 'andharini@if.trunojoyo.ac.id', 'gender' => 'P'],
+            ['nip' => '19790222200501', 'nama' => 'Ari Kusumaningsih, S.T., M.T.', 'email' => 'ari.kusumaningsih@trunojoyo.ac.id', 'gender' => 'P'],
+            ['nip' => '19691118200112', 'nama' => 'Prof. Dr. Arif Muntasa, M.T.', 'email' => 'arifmuntasa@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19841104200812', 'nama' => 'Devie Rosa Anamisa, S.Kom., M.Kom.', 'email' => 'devros_gress@trunojoyo.ac.id', 'gender' => 'P'],
+            ['nip' => '19780309200312', 'nama' => 'Dr. Arik Kurniawati, S.Kom., M.T.', 'email' => 'arik.kurniawati@trunojoyo.ac.id', 'gender' => 'P'],
+            ['nip' => '19800325200312', 'nama' => 'Dr. Bain Khusnul Khotimah, S.T., M.Kom.', 'email' => 'bain@trunojoyo.ac.id', 'gender' => 'P'],
+            ['nip' => '19780225200501', 'nama' => 'Dr. Cucun Very Angkoso, S.T., M.T.', 'email' => 'cucunvery@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19840716200812', 'nama' => 'Dr. Eka Mala Sari Rochman, S.Kom., M.Kom.', 'email' => 'em_sari@trunojoyo.ac.id', 'gender' => 'P'],
+            ['nip' => '19780820200212', 'nama' => 'Dr. Indah Agustien Siradjuddin, S.Kom., M.Kom.', 'email' => 'indah.siradjuddin@trunojoyo.ac.id', 'gender' => 'P'],
+            ['nip' => '19790510200604', 'nama' => 'Dr. Meidya Koeshardianto, S.Si., M.T.', 'email' => 'meidya@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19780317200312', 'nama' => 'Dr. Noor Ifada, S.T., MISD.', 'email' => 'noor.ifada@trunojoyo.ac.id', 'gender' => 'P'],
+            ['nip' => '19830607200604', 'nama' => 'Dr. Rika Yunitarini, S.T., M.T.', 'email' => 'rika.yunitarini@trunojoyo.ac.id', 'gender' => 'P'],
+            ['nip' => '19800820200312', 'nama' => 'Dr. Rima Tri Wahyuningrum, S.T., M.T.', 'email' => 'rimatriwahyuningrum@trunojoyo.ac.id', 'gender' => 'P'],
+            ['nip' => '19740221200801', 'nama' => 'Dwi Kuswanto, S.Pd., M.T.', 'email' => 'dwi.kuswanto@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19891011202012', 'nama' => 'Fifin Ayu Mufarroha, S.Kom., M.Kom.', 'email' => 'fifin.mufarroha@trunojoyo.ac.id', 'gender' => 'P'],
+            ['nip' => '19760627200801', 'nama' => 'Firdaus Solihin, S.Kom., M.Kom.', 'email' => 'firdaus@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19790828200501', 'nama' => 'Hermawan, S.T., M.Kom.', 'email' => 'hermawan@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19770722200312', 'nama' => 'Husni, S.Kom., M.T.', 'email' => 'husni@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19881018201504', 'nama' => 'Ika Oktavia Suzanti, S.Kom., M.Cs.', 'email' => 'iosuzanti@trunojoyo.ac.id', 'gender' => 'P'],
+            ['nip' => '19810820200604', 'nama' => 'Iwan Santosa, S.T., M.T.', 'email' => 'iwan.santosa@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19790217200312', 'nama' => 'Kurniawan Eka Permana, S.Kom., M.Sc.', 'email' => 'kurniawan@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19770713200212', 'nama' => 'Moch. Kautsar Sophan, S.Kom., M.M.T.', 'email' => 'kautsar@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19730520200212', 'nama' => 'Mula\'ab, S.Si., M.Kom.', 'email' => 'mulaab@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19790313200604', 'nama' => 'Sigit Susanto Putro, S.Kom., M.Kom.', 'email' => 'sigit.putro@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19840413200812', 'nama' => 'Yoga Dwitya Pramudita, S.Kom., M.Cs.', 'email' => 'yoga@trunojoyo.ac.id', 'gender' => 'L'],
+            ['nip' => '19800213200604', 'nama' => 'Yonathan Ferry Hendrawan, S.T., MIT.', 'email' => 'yonathan.hendrawan@trunojoyo.ac.id', 'gender' => 'L'],
+        ];
 
-        Dosen::create([
-            'user_id' => $user1->id,
-            'nip' => '197001011995121001',
-            'nidn' => '0001017001',
-            'nama' => 'Dr. Agus Wijaya, M.Kom.',
-            'prodi_id' => $units['prodi']->id,
-            'no_hp' => '081111111111',
-            'email' => 'agus@sisri.test',
-        ]);
+        foreach ($dosenData as $index => $data) {
+            // Alternating prodi assignment (TI and SI)
+            $prodiId = ($index % 2 == 0) ? $units['prodi']->id : $units['prodi2']->id;
+            
+            $user = User::create([
+                'name' => $data['nama'],
+                'username' => $data['nip'],
+                'email' => $data['email'],
+                'password' => Hash::make('password'),
+                'role' => 'dosen',
+                'is_active' => true,
+            ]);
+            $user->assignRole('dosen');
 
-        // Dosen 2
-        $user2 = User::create([
-            'name' => 'Dr. Dewi Lestari, M.T.',
-            'username' => '198005152005012001',
-            'email' => 'dewi@sisri.test',
-            'password' => Hash::make('password'),
-            'role' => 'dosen',
-            'is_active' => true,
-        ]);
-        $user2->assignRole('dosen');
-
-        Dosen::create([
-            'user_id' => $user2->id,
-            'nip' => '198005152005012001',
-            'nidn' => '0015058001',
-            'nama' => 'Dr. Dewi Lestari, M.T.',
-            'prodi_id' => $units['prodi']->id,
-            'no_hp' => '081222222222',
-            'email' => 'dewi@sisri.test',
-        ]);
-
-        // Dosen 3
-        $user3 = User::create([
-            'name' => 'Ir. Hendra Kusuma, M.Cs.',
-            'username' => '196808081994031002',
-            'email' => 'hendra@sisri.test',
-            'password' => Hash::make('password'),
-            'role' => 'dosen',
-            'is_active' => true,
-        ]);
-        $user3->assignRole('dosen');
-
-        Dosen::create([
-            'user_id' => $user3->id,
-            'nip' => '196808081994031002',
-            'nidn' => '0008086801',
-            'nama' => 'Ir. Hendra Kusuma, M.Cs.',
-            'prodi_id' => $units['prodi2']->id,
-            'no_hp' => '081333333333',
-            'email' => 'hendra@sisri.test',
-        ]);
-
-        // Dosen 4
-        $user4 = User::create([
-            'name' => 'Prof. Dr. Bambang Sutrisno, M.Sc.',
-            'username' => '196505101990031001',
-            'email' => 'bambang@sisri.test',
-            'password' => Hash::make('password'),
-            'role' => 'dosen',
-            'is_active' => true,
-        ]);
-        $user4->assignRole('dosen');
-
-        Dosen::create([
-            'user_id' => $user4->id,
-            'nip' => '196505101990031001',
-            'nidn' => '0010056501',
-            'nama' => 'Prof. Dr. Bambang Sutrisno, M.Sc.',
-            'prodi_id' => $units['prodi']->id,
-            'no_hp' => '081555555555',
-            'email' => 'bambang@sisri.test',
-        ]);
-
-        // Dosen 5
-        $user5 = User::create([
-            'name' => 'Dr. Sri Wahyuni, M.T.',
-            'username' => '197802202003122001',
-            'email' => 'sri@sisri.test',
-            'password' => Hash::make('password'),
-            'role' => 'dosen',
-            'is_active' => true,
-        ]);
-        $user5->assignRole('dosen');
-
-        Dosen::create([
-            'user_id' => $user5->id,
-            'nip' => '197802202003122001',
-            'nidn' => '0020027801',
-            'nama' => 'Dr. Sri Wahyuni, M.T.',
-            'prodi_id' => $units['prodi']->id,
-            'no_hp' => '081666666666',
-            'email' => 'sri@sisri.test',
-        ]);
-
-        // Dosen 6
-        $user6 = User::create([
-            'name' => 'Dr. Eko Prasetyo, M.Kom.',
-            'username' => '198107152006041001',
-            'email' => 'eko@sisri.test',
-            'password' => Hash::make('password'),
-            'role' => 'dosen',
-            'is_active' => true,
-        ]);
-        $user6->assignRole('dosen');
-
-        Dosen::create([
-            'user_id' => $user6->id,
-            'nip' => '198107152006041001',
-            'nidn' => '0015078101',
-            'nama' => 'Dr. Eko Prasetyo, M.Kom.',
-            'prodi_id' => $units['prodi']->id,
-            'no_hp' => '081777777777',
-            'email' => 'eko@sisri.test',
-        ]);
-
-        // Dosen 7
-        $user7 = User::create([
-            'name' => 'Dr. Nurul Hidayah, M.Si.',
-            'username' => '198309102008012001',
-            'email' => 'nurul@sisri.test',
-            'password' => Hash::make('password'),
-            'role' => 'dosen',
-            'is_active' => true,
-        ]);
-        $user7->assignRole('dosen');
-
-        Dosen::create([
-            'user_id' => $user7->id,
-            'nip' => '198309102008012001',
-            'nidn' => '0010098301',
-            'nama' => 'Dr. Nurul Hidayah, M.Si.',
-            'prodi_id' => $units['prodi']->id,
-            'no_hp' => '081888888888',
-            'email' => 'nurul@sisri.test',
-        ]);
-
-        // Dosen 8
-        $user8 = User::create([
-            'name' => 'Dr. Andi Firmansyah, M.Eng.',
-            'username' => '198512012010121001',
-            'email' => 'andi@sisri.test',
-            'password' => Hash::make('password'),
-            'role' => 'dosen',
-            'is_active' => true,
-        ]);
-        $user8->assignRole('dosen');
-
-        Dosen::create([
-            'user_id' => $user8->id,
-            'nip' => '198512012010121001',
-            'nidn' => '0001128501',
-            'nama' => 'Dr. Andi Firmansyah, M.Eng.',
-            'prodi_id' => $units['prodi']->id,
-            'no_hp' => '081999999999',
-            'email' => 'andi@sisri.test',
-        ]);
-
-        // Dosen 9
-        $user9 = User::create([
-            'name' => 'Dr. Maya Sari, M.Kom.',
-            'username' => '198706152012042001',
-            'email' => 'maya@sisri.test',
-            'password' => Hash::make('password'),
-            'role' => 'dosen',
-            'is_active' => true,
-        ]);
-        $user9->assignRole('dosen');
-
-        Dosen::create([
-            'user_id' => $user9->id,
-            'nip' => '198706152012042001',
-            'nidn' => '0015068701',
-            'nama' => 'Dr. Maya Sari, M.Kom.',
-            'prodi_id' => $units['prodi']->id,
-            'no_hp' => '082111111111',
-            'email' => 'maya@sisri.test',
-        ]);
-
-        // Dosen 10
-        $user10 = User::create([
-            'name' => 'Dr. Rudi Hartono, M.T.',
-            'username' => '198901202015041001',
-            'email' => 'rudi@sisri.test',
-            'password' => Hash::make('password'),
-            'role' => 'dosen',
-            'is_active' => true,
-        ]);
-        $user10->assignRole('dosen');
-
-        Dosen::create([
-            'user_id' => $user10->id,
-            'nip' => '198901202015041001',
-            'nidn' => '0020018901',
-            'nama' => 'Dr. Rudi Hartono, M.T.',
-            'prodi_id' => $units['prodi']->id,
-            'no_hp' => '082222222222',
-            'email' => 'rudi@sisri.test',
-        ]);
+            Dosen::create([
+                'user_id' => $user->id,
+                'nip' => $data['nip'],
+                'nidn' => null, // NIDN not available in source data
+                'nama' => $data['nama'],
+                'prodi_id' => $prodiId,
+                'no_hp' => null,
+                'email' => $data['email'],
+            ]);
+        }
     }
 
     private function createKoordinatorUser(array $units): void
     {
+        // Koordinator menggunakan salah satu dosen dari data siakad
+        // Dr. Fika Hastarita Rachman, S.T., M.Eng. sebagai Koordinator Prodi TI
         $user = User::create([
-            'name' => 'Dr. Rina Marlina, M.Kom.',
-            'username' => '197503201999032001',
-            'email' => 'rina@sisri.test',
+            'name' => 'Dr. Fika Hastarita Rachman, S.T., M.Eng.',
+            'username' => '19830305200604',
+            'email' => 'fika@trunojoyo.ac.id',
             'password' => Hash::make('password'),
             'role' => 'koordinator',
             'is_active' => true,
@@ -410,12 +261,12 @@ class DatabaseSeeder extends Seeder
         // Create Dosen record for Koordinator
         $dosen = Dosen::create([
             'user_id' => $user->id,
-            'nip' => '197503201999032001',
-            'nidn' => '0020037501',
-            'nama' => 'Dr. Rina Marlina, M.Kom.',
+            'nip' => '19830305200604',
+            'nidn' => null,
+            'nama' => 'Dr. Fika Hastarita Rachman, S.T., M.Eng.',
             'prodi_id' => $units['prodi']->id,
-            'no_hp' => '081444444444',
-            'email' => 'rina@sisri.test',
+            'no_hp' => null,
+            'email' => 'fika@trunojoyo.ac.id',
         ]);
 
         KoordinatorProdi::create([
@@ -521,9 +372,9 @@ class DatabaseSeeder extends Seeder
         $mahasiswaBudi = Mahasiswa::where('nim', '2021001')->first();
         $mahasiswaSiti = Mahasiswa::where('nim', '2021002')->first();
         
-        // Get dosen
-        $dosenAgus = Dosen::where('nip', '197001011995121001')->first();
-        $dosenDewi = Dosen::where('nip', '198005152005012001')->first();
+        // Get dosen (menggunakan NIP dari data siakad)
+        $dosenPembimbing1 = Dosen::where('nip', '19740610200812')->first(); // Abdullah Basuki Rahmat
+        $dosenPembimbing2 = Dosen::where('nip', '19860926201404')->first(); // Ach Khozaimi
         
         // Get bidang minat
         $bidangMinatAI = BidangMinat::where('nama', 'Artificial Intelligence')->first();
@@ -542,7 +393,7 @@ class DatabaseSeeder extends Seeder
         // Usulan pembimbing untuk Budi - Status DITERIMA
         UsulanPembimbing::create([
             'topik_id' => $topikBudi->id,
-            'dosen_id' => $dosenAgus->id,
+            'dosen_id' => $dosenPembimbing1->id,
             'urutan' => 1,
             'status' => 'diterima',
             'catatan' => 'Bersedia menjadi pembimbing 1',
@@ -550,7 +401,7 @@ class DatabaseSeeder extends Seeder
         
         UsulanPembimbing::create([
             'topik_id' => $topikBudi->id,
-            'dosen_id' => $dosenDewi->id,
+            'dosen_id' => $dosenPembimbing2->id,
             'urutan' => 2,
             'status' => 'diterima',
             'catatan' => 'Bersedia menjadi pembimbing 2',
@@ -569,7 +420,7 @@ class DatabaseSeeder extends Seeder
         // Usulan pembimbing untuk Siti - Status MENUNGGU
         UsulanPembimbing::create([
             'topik_id' => $topikSiti->id,
-            'dosen_id' => $dosenDewi->id,
+            'dosen_id' => $dosenPembimbing2->id,
             'urutan' => 1,
             'status' => 'menunggu',
             'catatan' => null,
@@ -577,7 +428,7 @@ class DatabaseSeeder extends Seeder
         
         UsulanPembimbing::create([
             'topik_id' => $topikSiti->id,
-            'dosen_id' => $dosenAgus->id,
+            'dosen_id' => $dosenPembimbing1->id,
             'urutan' => 2,
             'status' => 'menunggu',
             'catatan' => null,
@@ -590,10 +441,10 @@ class DatabaseSeeder extends Seeder
         $mahasiswaBudi = Mahasiswa::where('nim', '2021001')->first();
         $topikBudi = TopikSkripsi::where('mahasiswa_id', $mahasiswaBudi->id)->first();
         
-        // Get dosen
-        $dosenAgus = Dosen::where('nip', '197001011995121001')->first();
-        $dosenDewi = Dosen::where('nip', '198005152005012001')->first();
-        $dosenHendra = Dosen::where('nip', '196808081994031002')->first();
+        // Get dosen (menggunakan NIP dari data siakad)
+        $dosenPembimbing1 = Dosen::where('nip', '19740610200812')->first(); // Abdullah Basuki Rahmat
+        $dosenPembimbing2 = Dosen::where('nip', '19860926201404')->first(); // Ach Khozaimi
+        $dosenPenguji = Dosen::where('nip', '19810109200604')->first(); // Achmad Jauhari
         
         // Get jadwal sidang
         $jadwalSeminar = JadwalSidang::where('jenis', 'seminar_proposal')->first();
@@ -623,7 +474,7 @@ class DatabaseSeeder extends Seeder
         // Tambah penguji sidang (pembimbing 1 & 2 + 1 penguji)
         PengujiSidang::create([
             'pelaksanaan_sidang_id' => $pelaksanaanBudi->id,
-            'dosen_id' => $dosenAgus->id,
+            'dosen_id' => $dosenPembimbing1->id,
             'role' => 'pembimbing_1',
             'ttd_berita_acara' => true,
             'tanggal_ttd' => now()->subDays(3),
@@ -631,7 +482,7 @@ class DatabaseSeeder extends Seeder
         
         PengujiSidang::create([
             'pelaksanaan_sidang_id' => $pelaksanaanBudi->id,
-            'dosen_id' => $dosenDewi->id,
+            'dosen_id' => $dosenPembimbing2->id,
             'role' => 'pembimbing_2',
             'ttd_berita_acara' => true,
             'tanggal_ttd' => now()->subDays(3),
@@ -639,7 +490,7 @@ class DatabaseSeeder extends Seeder
         
         PengujiSidang::create([
             'pelaksanaan_sidang_id' => $pelaksanaanBudi->id,
-            'dosen_id' => $dosenHendra->id,
+            'dosen_id' => $dosenPenguji->id,
             'role' => 'penguji_1',
             'ttd_berita_acara' => true,
             'tanggal_ttd' => now()->subDays(3),
