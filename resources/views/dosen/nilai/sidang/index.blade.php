@@ -23,7 +23,7 @@
                 <div class="p-6 text-gray-900">
                     <div class="mb-6">
                         <h3 class="text-lg font-medium text-gray-900 mb-2">Daftar Mahasiswa yang Perlu Dinilai (Sidang Skripsi)</h3>
-                        <p class="text-sm text-gray-600">Anda ditugaskan sebagai penguji untuk mahasiswa berikut:</p>
+                        <p class="text-sm text-gray-600">Anda ditugaskan sebagai pembimbing/penguji untuk mahasiswa berikut:</p>
                     </div>
 
                     @if($penugasan->count() > 0)

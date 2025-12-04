@@ -151,6 +151,14 @@
                     Nilai Sidang
                 </x-sidebar-dropdown-link>
             </x-sidebar-dropdown>
+            <x-sidebar-dropdown label="Berita Acara" icon="clipboard" :active="request()->routeIs('dosen.berita-acara.*')">
+                <x-sidebar-dropdown-link :href="route('dosen.berita-acara.index', ['jenis' => 'sempro'])" :active="request()->routeIs('dosen.berita-acara.*') && request('jenis') === 'sempro'">
+                    Seminar Proposal
+                </x-sidebar-dropdown-link>
+                <x-sidebar-dropdown-link :href="route('dosen.berita-acara.index', ['jenis' => 'sidang'])" :active="request()->routeIs('dosen.berita-acara.*') && request('jenis') === 'sidang'">
+                    Sidang Skripsi
+                </x-sidebar-dropdown-link>
+            </x-sidebar-dropdown>
         @endif
 
         {{-- Koordinator Menu --}}
@@ -233,6 +241,14 @@
                 </x-sidebar-dropdown-link>
                 <x-sidebar-dropdown-link :href="route('dosen.nilai-sidang.index')" :active="request()->routeIs('dosen.nilai-sidang.*')">
                     Nilai Sidang
+                </x-sidebar-dropdown-link>
+            </x-sidebar-dropdown>
+            <x-sidebar-dropdown label="Berita Acara" icon="clipboard" :active="request()->routeIs('dosen.berita-acara.*')">
+                <x-sidebar-dropdown-link :href="route('dosen.berita-acara.index', ['jenis' => 'sempro'])" :active="request()->routeIs('dosen.berita-acara.*') && request('jenis') === 'sempro'">
+                    Seminar Proposal
+                </x-sidebar-dropdown-link>
+                <x-sidebar-dropdown-link :href="route('dosen.berita-acara.index', ['jenis' => 'sidang'])" :active="request()->routeIs('dosen.berita-acara.*') && request('jenis') === 'sidang'">
+                    Sidang Skripsi
                 </x-sidebar-dropdown-link>
             </x-sidebar-dropdown>
         @endif
