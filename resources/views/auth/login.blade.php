@@ -22,12 +22,7 @@
 
         <!-- Right Side - Login Form -->
         <div class="lg:w-1/2 p-8 flex flex-col justify-center">
-            <!-- SIAKAD Button -->
-            <div class="mb-6">
-                <a href="#" class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-3 rounded-lg font-semibold transition-colors shadow-md">
-                    SIAKAD UTM
-                </a>
-            </div>
+           
 
             <!-- Session Status -->
             <x-auth-session-status class="mb-4" :status="session('status')" />
@@ -71,7 +66,7 @@
                 <input type="hidden" name="remember" value="1">
             </form>
 
-            <!-- Demo Accounts Info -->
+            <!-- Demo Accounts Info
             <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
                 <p class="text-xs font-semibold text-blue-800 mb-2">🔑 Akun Demo:</p>
                 <div class="text-xs text-blue-700 space-y-1">
@@ -81,7 +76,7 @@
                     <p><span class="font-medium">Koordinator:</span> rina@sisri.test</p>
                     <p class="mt-2 pt-2 border-t border-blue-200">Password: <code class="bg-blue-100 px-1.5 py-0.5 rounded font-mono">password</code></p>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
 </x-guest-layout>
