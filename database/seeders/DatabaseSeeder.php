@@ -72,6 +72,9 @@ class DatabaseSeeder extends Seeder
         
         // Create Complete Sidang with Nilai & Revisi (mahasiswa yang sudah selesai)
         $this->createCompleteSidangWithNilai($units);
+        
+        // Create Sidang untuk Koordinator Fika bisa input nilai
+        $this->createSidangForKoordinatorNilai($units);
     }
 
     private function createRoles(): void
@@ -1540,5 +1543,326 @@ class DatabaseSeeder extends Seeder
             'status' => 'menunggu',
             'tanggal_bimbingan' => now()->subDays(1),
         ]);
+    }
+    
+    /**
+     * Create sidang dimana Dr. Fika (Koordinator) menjadi penguji
+     * Sehingga Fika bisa login dan input nilai
+     */
+    private function createSidangForKoordinatorNilai(array $units): void
+    {
+        // Get Dr. Fika sebagai dosen
+        $dosenFika = Dosen::where('nip', '19830305200604')->first();
+        
+        // Get dosen lain untuk pembimbing
+        $dosenList = Dosen::whereIn('nip', [
+            '19740610200812', // Abdullah Basuki Rahmat
+            '19860926201404', // Ach Khozaimi
+        ])->get()->keyBy('nip');
+        
+        $bidangMinatAI = BidangMinat::where('nama', 'Artificial Intelligence')->first();
+        $bidangMinatWeb = BidangMinat::where('nama', 'Web Development')->first();
+        
+        $jadwalSeminarNov = JadwalSidang::where('jenis', 'seminar_proposal')
+            ->where('nama', 'like', '%November%')
+            ->first();
+        $jadwalSidangNov = JadwalSidang::where('jenis', 'sidang_skripsi')
+            ->where('nama', 'like', '%November%')
+            ->first();
+        
+        // ========== MAHASISWA 1: FAJAR - Sempro selesai, Fika sebagai penguji (belum input nilai) ==========
+        $userFajar = User::create([
+            'name' => 'Fajar Nugroho',
+            'username' => '2020004',
+            'email' => 'fajar.nugroho@sisri.test',
+            'password' => Hash::make('password'),
+            'role' => 'mahasiswa',
+            'is_active' => true,
+        ]);
+        $userFajar->assignRole('mahasiswa');
+        
+        $mahasiswaFajar = Mahasiswa::create([
+            'user_id' => $userFajar->id,
+            'nim' => '2020004',
+            'nama' => 'Fajar Nugroho',
+            'prodi_id' => $units['prodi']->id,
+            'angkatan' => '2020',
+            'no_hp' => '081234567896',
+        ]);
+        
+        $topikFajar = TopikSkripsi::create([
+            'mahasiswa_id' => $mahasiswaFajar->id,
+            'bidang_minat_id' => $bidangMinatAI->id,
+            'judul' => 'Implementasi Chatbot Berbasis NLP untuk Layanan Akademik',
+            'status' => 'diterima',
+            'catatan' => 'Topik disetujui oleh koordinator',
+        ]);
+        
+        UsulanPembimbing::create([
+            'topik_id' => $topikFajar->id,
+            'dosen_id' => $dosenList['19740610200812']->id, // Abdullah
+            'urutan' => 1,
+            'status' => 'diterima',
+        ]);
+        
+        UsulanPembimbing::create([
+            'topik_id' => $topikFajar->id,
+            'dosen_id' => $dosenList['19860926201404']->id, // Khozaimi
+            'urutan' => 2,
+            'status' => 'diterima',
+        ]);
+        
+        // Sempro Fajar - selesai, FIKA sebagai penguji, BELUM ADA NILAI
+        $pendaftaranSemproFajar = PendaftaranSidang::create([
+            'topik_id' => $topikFajar->id,
+            'jadwal_sidang_id' => $jadwalSeminarNov->id,
+            'jenis' => 'seminar_proposal',
+            'status_pembimbing_1' => 'disetujui',
+            'status_pembimbing_2' => 'disetujui',
+            'status_koordinator' => 'disetujui',
+            'catatan_koordinator' => 'Dijadwalkan untuk sempro',
+        ]);
+        
+        $pelaksanaanSemproFajar = PelaksanaanSidang::create([
+            'pendaftaran_sidang_id' => $pendaftaranSemproFajar->id,
+            'tanggal_sidang' => now()->subDays(2), // 2 hari lalu
+            'tempat' => 'Ruang Sidang A - Gedung Teknik Lt. 3',
+            'status' => 'selesai',
+            'berita_acara' => 'Seminar proposal telah dilaksanakan dengan baik.',
+        ]);
+        
+        // Penguji sempro Fajar - FIKA sebagai penguji_1
+        PengujiSidang::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSemproFajar->id,
+            'dosen_id' => $dosenList['19740610200812']->id,
+            'role' => 'pembimbing_1',
+            'ttd_berita_acara' => true,
+            'tanggal_ttd' => now()->subDays(2),
+        ]);
+        
+        PengujiSidang::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSemproFajar->id,
+            'dosen_id' => $dosenList['19860926201404']->id,
+            'role' => 'pembimbing_2',
+            'ttd_berita_acara' => true,
+            'tanggal_ttd' => now()->subDays(2),
+        ]);
+        
+        // FIKA sebagai penguji - BELUM input nilai!
+        PengujiSidang::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSemproFajar->id,
+            'dosen_id' => $dosenFika->id,
+            'role' => 'penguji_1',
+            'ttd_berita_acara' => true,
+            'tanggal_ttd' => now()->subDays(2),
+        ]);
+        
+        // Pembimbing sudah input nilai, tapi Fika (penguji) BELUM
+        Nilai::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSemproFajar->id,
+            'dosen_id' => $dosenList['19740610200812']->id,
+            'jenis_nilai' => 'bimbingan',
+            'nilai' => 82.00,
+            'catatan' => 'Bimbingan baik dan konsisten',
+        ]);
+        
+        Nilai::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSemproFajar->id,
+            'dosen_id' => $dosenList['19740610200812']->id,
+            'jenis_nilai' => 'ujian',
+            'nilai' => 80.00,
+            'catatan' => 'Presentasi cukup baik',
+        ]);
+        
+        Nilai::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSemproFajar->id,
+            'dosen_id' => $dosenList['19860926201404']->id,
+            'jenis_nilai' => 'bimbingan',
+            'nilai' => 81.00,
+        ]);
+        
+        Nilai::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSemproFajar->id,
+            'dosen_id' => $dosenList['19860926201404']->id,
+            'jenis_nilai' => 'ujian',
+            'nilai' => 79.00,
+        ]);
+        
+        // FIKA BELUM INPUT NILAI - ini yang akan diinput oleh Fika
+        
+        // ========== MAHASISWA 2: MAYA - Sidang skripsi selesai, Fika penguji, belum input nilai ==========
+        $userMaya = User::create([
+            'name' => 'Maya Anggraini',
+            'username' => '2019002',
+            'email' => 'maya.anggraini@sisri.test',
+            'password' => Hash::make('password'),
+            'role' => 'mahasiswa',
+            'is_active' => true,
+        ]);
+        $userMaya->assignRole('mahasiswa');
+        
+        $mahasiswaMaya = Mahasiswa::create([
+            'user_id' => $userMaya->id,
+            'nim' => '2019002',
+            'nama' => 'Maya Anggraini',
+            'prodi_id' => $units['prodi']->id,
+            'angkatan' => '2019',
+            'no_hp' => '081234567897',
+        ]);
+        
+        $topikMaya = TopikSkripsi::create([
+            'mahasiswa_id' => $mahasiswaMaya->id,
+            'bidang_minat_id' => $bidangMinatWeb->id,
+            'judul' => 'Pengembangan E-Learning Adaptif dengan Metode Item Response Theory',
+            'status' => 'diterima',
+        ]);
+        
+        UsulanPembimbing::create([
+            'topik_id' => $topikMaya->id,
+            'dosen_id' => $dosenList['19860926201404']->id, // Khozaimi
+            'urutan' => 1,
+            'status' => 'diterima',
+        ]);
+        
+        UsulanPembimbing::create([
+            'topik_id' => $topikMaya->id,
+            'dosen_id' => $dosenList['19740610200812']->id, // Abdullah
+            'urutan' => 2,
+            'status' => 'diterima',
+        ]);
+        
+        // Sempro Maya - sudah selesai
+        $pendaftaranSemproMaya = PendaftaranSidang::create([
+            'topik_id' => $topikMaya->id,
+            'jadwal_sidang_id' => $jadwalSeminarNov->id,
+            'jenis' => 'seminar_proposal',
+            'status_pembimbing_1' => 'disetujui',
+            'status_pembimbing_2' => 'disetujui',
+            'status_koordinator' => 'disetujui',
+        ]);
+        
+        $pelaksanaanSemproMaya = PelaksanaanSidang::create([
+            'pendaftaran_sidang_id' => $pendaftaranSemproMaya->id,
+            'tanggal_sidang' => now()->subDays(30),
+            'tempat' => 'Ruang Sidang B - Gedung Teknik Lt. 3',
+            'status' => 'selesai',
+            'berita_acara' => 'Lulus sempro',
+        ]);
+        
+        // Penguji sempro Maya (sudah selesai semua)
+        PengujiSidang::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSemproMaya->id,
+            'dosen_id' => $dosenList['19860926201404']->id,
+            'role' => 'pembimbing_1',
+            'ttd_berita_acara' => true,
+        ]);
+        PengujiSidang::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSemproMaya->id,
+            'dosen_id' => $dosenList['19740610200812']->id,
+            'role' => 'pembimbing_2',
+            'ttd_berita_acara' => true,
+        ]);
+        
+        // Nilai sempro Maya (sudah lengkap)
+        Nilai::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSemproMaya->id,
+            'dosen_id' => $dosenList['19860926201404']->id,
+            'jenis_nilai' => 'bimbingan',
+            'nilai' => 85.00,
+        ]);
+        Nilai::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSemproMaya->id,
+            'dosen_id' => $dosenList['19860926201404']->id,
+            'jenis_nilai' => 'ujian',
+            'nilai' => 83.00,
+        ]);
+        Nilai::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSemproMaya->id,
+            'dosen_id' => $dosenList['19740610200812']->id,
+            'jenis_nilai' => 'bimbingan',
+            'nilai' => 84.00,
+        ]);
+        Nilai::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSemproMaya->id,
+            'dosen_id' => $dosenList['19740610200812']->id,
+            'jenis_nilai' => 'ujian',
+            'nilai' => 82.00,
+        ]);
+        
+        // Sidang Skripsi Maya - selesai, FIKA sebagai penguji, BELUM input nilai
+        $pendaftaranSidangMaya = PendaftaranSidang::create([
+            'topik_id' => $topikMaya->id,
+            'jadwal_sidang_id' => $jadwalSidangNov->id,
+            'jenis' => 'sidang_skripsi',
+            'status_pembimbing_1' => 'disetujui',
+            'status_pembimbing_2' => 'disetujui',
+            'status_koordinator' => 'disetujui',
+        ]);
+        
+        $pelaksanaanSidangMaya = PelaksanaanSidang::create([
+            'pendaftaran_sidang_id' => $pendaftaranSidangMaya->id,
+            'tanggal_sidang' => now()->subDays(1), // Kemarin
+            'tempat' => 'Ruang Sidang C - Gedung Teknik Lt. 2',
+            'status' => 'selesai',
+            'berita_acara' => 'Sidang skripsi telah dilaksanakan. Menunggu input nilai.',
+        ]);
+        
+        // Penguji sidang Maya - FIKA sebagai penguji
+        PengujiSidang::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSidangMaya->id,
+            'dosen_id' => $dosenList['19860926201404']->id,
+            'role' => 'pembimbing_1',
+            'ttd_berita_acara' => true,
+            'tanggal_ttd' => now()->subDays(1),
+        ]);
+        
+        PengujiSidang::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSidangMaya->id,
+            'dosen_id' => $dosenList['19740610200812']->id,
+            'role' => 'pembimbing_2',
+            'ttd_berita_acara' => true,
+            'tanggal_ttd' => now()->subDays(1),
+        ]);
+        
+        // FIKA sebagai penguji sidang skripsi Maya
+        PengujiSidang::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSidangMaya->id,
+            'dosen_id' => $dosenFika->id,
+            'role' => 'penguji_1',
+            'ttd_berita_acara' => true,
+            'tanggal_ttd' => now()->subDays(1),
+        ]);
+        
+        // Pembimbing sudah input nilai
+        Nilai::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSidangMaya->id,
+            'dosen_id' => $dosenList['19860926201404']->id,
+            'jenis_nilai' => 'bimbingan',
+            'nilai' => 88.00,
+            'catatan' => 'Bimbingan sangat baik dari awal sampai akhir',
+        ]);
+        
+        Nilai::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSidangMaya->id,
+            'dosen_id' => $dosenList['19860926201404']->id,
+            'jenis_nilai' => 'ujian',
+            'nilai' => 86.00,
+        ]);
+        
+        Nilai::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSidangMaya->id,
+            'dosen_id' => $dosenList['19740610200812']->id,
+            'jenis_nilai' => 'bimbingan',
+            'nilai' => 87.00,
+        ]);
+        
+        Nilai::create([
+            'pelaksanaan_sidang_id' => $pelaksanaanSidangMaya->id,
+            'dosen_id' => $dosenList['19740610200812']->id,
+            'jenis_nilai' => 'ujian',
+            'nilai' => 85.00,
+        ]);
+        
+        // FIKA BELUM INPUT NILAI untuk sidang Maya - ini yang akan diinput
     }
 }

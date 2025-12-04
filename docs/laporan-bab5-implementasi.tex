@@ -1,0 +1,884 @@
+% ============================================
+% BAB 5 - IMPLEMENTASI SISTEM
+% SISRI-BPI (Sistem Informasi Skripsi)
+% Universitas Trunojoyo Madura
+% ============================================
+
+\chapter{IMPLEMENTASI SISTEM}
+
+\section{Lingkungan Implementasi}
+
+\subsection{Spesifikasi Perangkat Keras}
+Implementasi sistem SISRI-BPI dilakukan pada perangkat dengan spesifikasi sebagai berikut:
+
+\begin{table}[H]
+\centering
+\caption{Spesifikasi Perangkat Keras}
+\label{tab:spesifikasi-hardware}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Komponen} & \textbf{Spesifikasi} \\
+\hline
+Processor & Intel Core i5 / AMD Ryzen 5 atau lebih tinggi \\
+\hline
+RAM & Minimal 8 GB \\
+\hline
+Storage & SSD 256 GB atau lebih \\
+\hline
+Display & Resolusi minimal 1920 x 1080 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Spesifikasi Perangkat Lunak}
+\begin{table}[H]
+\centering
+\caption{Spesifikasi Perangkat Lunak}
+\label{tab:spesifikasi-software}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Software} & \textbf{Versi} & \textbf{Keterangan} \\
+\hline
+Operating System & Linux/Windows/macOS & Development \& Production \\
+\hline
+PHP & 8.4.x & Backend Runtime \\
+\hline
+Laravel Framework & 12.x & PHP Framework \\
+\hline
+Node.js & 20.x LTS & Frontend Build Tool \\
+\hline
+SQLite/MySQL & 3.x / 8.x & Database Management \\
+\hline
+Composer & 2.x & PHP Dependency Manager \\
+\hline
+NPM & 10.x & Node Package Manager \\
+\hline
+Visual Studio Code & Latest & Code Editor \\
+\hline
+Git & Latest & Version Control \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Teknologi yang Digunakan}
+\begin{table}[H]
+\centering
+\caption{Stack Teknologi SISRI-BPI}
+\label{tab:tech-stack}
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+\textbf{Layer} & \textbf{Teknologi} & \textbf{Fungsi} \\
+\hline
+Frontend & TailwindCSS & Utility-first CSS framework untuk styling \\
+\hline
+Frontend & Alpine.js & Lightweight JavaScript framework untuk interaktivitas \\
+\hline
+Frontend & SweetAlert2 & Library untuk dialog dan notifikasi \\
+\hline
+Backend & Laravel 12 & PHP framework dengan arsitektur MVC \\
+\hline
+Backend & Laravel Breeze & Authentication scaffolding \\
+\hline
+Backend & Spatie Permission & Role \& permission management \\
+\hline
+Database & SQLite/MySQL & Relational database management system \\
+\hline
+Build Tool & Vite & Frontend asset bundler \\
+\hline
+Server & Laravel Octane & High-performance application server \\
+\hline
+\end{tabular}
+\end{table}
+
+% ============================================
+\section{Struktur Direktori Proyek}
+
+Struktur direktori proyek SISRI-BPI mengikuti konvensi Laravel dengan beberapa penyesuaian:
+
+\begin{lstlisting}[language=bash, caption={Struktur Direktori SISRI-BPI}, label={lst:struktur-direktori}]
+SISRI-BPI/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Admin/
+│   │   │   ├── Dosen/
+│   │   │   ├── Koordinator/
+│   │   │   └── Mahasiswa/
+│   │   ├── Middleware/
+│   │   └── Requests/
+│   ├── Models/
+│   │   ├── User.php
+│   │   ├── Mahasiswa.php
+│   │   ├── Dosen.php
+│   │   ├── TopikSkripsi.php
+│   │   ├── Bimbingan.php
+│   │   ├── PendaftaranSidang.php
+│   │   ├── PelaksanaanSidang.php
+│   │   └── ...
+│   └── Providers/
+├── database/
+│   ├── migrations/
+│   └── seeders/
+├── resources/
+│   ├── views/
+│   │   ├── admin/
+│   │   ├── dosen/
+│   │   ├── koordinator/
+│   │   ├── mahasiswa/
+│   │   ├── layouts/
+│   │   └── components/
+│   ├── css/
+│   └── js/
+├── routes/
+│   ├── web.php
+│   └── auth.php
+└── public/
+\end{lstlisting}
+
+% ============================================
+\section{Implementasi Database}
+
+\subsection{Implementasi Migration}
+Laravel menggunakan migration untuk membuat dan mengelola struktur database. Berikut contoh implementasi migration untuk tabel \texttt{topik\_skripsi}:
+
+\begin{lstlisting}[language=PHP, caption={Migration Tabel Topik Skripsi}, label={lst:migration-topik}]
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('topik_skripsi', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('mahasiswa_id')
+                  ->constrained('mahasiswa')
+                  ->cascadeOnDelete();
+            $table->foreignId('bidang_minat_id')
+                  ->constrained('bidang_minat')
+                  ->cascadeOnDelete();
+            $table->string('judul', 500);
+            $table->string('file_proposal', 255)->nullable();
+            $table->enum('status', ['menunggu', 'diterima', 'ditolak'])
+                  ->default('menunggu');
+            $table->text('catatan')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('topik_skripsi');
+    }
+};
+\end{lstlisting}
+
+\subsection{Implementasi Model}
+Model Eloquent digunakan untuk berinteraksi dengan database. Berikut implementasi model \texttt{TopikSkripsi}:
+
+\begin{lstlisting}[language=PHP, caption={Model TopikSkripsi}, label={lst:model-topik}]
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class TopikSkripsi extends Model
+{
+    protected $table = 'topik_skripsi';
+
+    protected $fillable = [
+        'mahasiswa_id',
+        'bidang_minat_id',
+        'judul',
+        'file_proposal',
+        'status',
+        'catatan',
+    ];
+
+    public function mahasiswa(): BelongsTo
+    {
+        return $this->belongsTo(Mahasiswa::class);
+    }
+
+    public function bidangMinat(): BelongsTo
+    {
+        return $this->belongsTo(BidangMinat::class);
+    }
+
+    public function usulanPembimbing(): HasMany
+    {
+        return $this->hasMany(UsulanPembimbing::class, 'topik_id');
+    }
+
+    public function bimbingan(): HasMany
+    {
+        return $this->hasMany(Bimbingan::class, 'topik_id');
+    }
+
+    public function pendaftaranSidang(): HasMany
+    {
+        return $this->hasMany(PendaftaranSidang::class, 'topik_id');
+    }
+
+    // Accessor untuk mendapatkan pembimbing yang sudah diterima
+    public function getPembimbing1Attribute()
+    {
+        return $this->usulanPembimbing()
+            ->where('urutan', 1)
+            ->where('status', 'diterima')
+            ->first()?->dosen;
+    }
+
+    public function getPembimbing2Attribute()
+    {
+        return $this->usulanPembimbing()
+            ->where('urutan', 2)
+            ->where('status', 'diterima')
+            ->first()?->dosen;
+    }
+}
+\end{lstlisting}
+
+% ============================================
+\section{Implementasi Controller}
+
+\subsection{Controller Bimbingan Mahasiswa}
+Berikut implementasi controller untuk mengelola bimbingan dari sisi mahasiswa:
+
+\begin{lstlisting}[language=PHP, caption={BimbinganController untuk Mahasiswa}, label={lst:controller-bimbingan}]
+<?php
+
+namespace App\Http\Controllers\Mahasiswa;
+
+use App\Http\Controllers\Controller;
+use App\Models\Bimbingan;
+use App\Models\BimbinganHistory;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+
+class BimbinganController extends Controller
+{
+    public function index()
+    {
+        $mahasiswa = Auth::user()->mahasiswa;
+        $topik = $mahasiswa->topikSkripsi()
+            ->where('status', 'diterima')
+            ->first();
+
+        if (!$topik) {
+            return redirect()->route('mahasiswa.topik.index')
+                ->with('error', 'Anda belum memiliki topik yang disetujui');
+        }
+
+        $bimbingan = Bimbingan::where('topik_id', $topik->id)
+            ->with(['dosen', 'histories'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('mahasiswa.bimbingan.index', compact('bimbingan', 'topik'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'dosen_id' => 'required|exists:dosen,id',
+            'jenis' => 'required|in:proposal,skripsi',
+            'pokok_bimbingan' => 'required|string|max:1000',
+            'pesan_mahasiswa' => 'nullable|string|max:2000',
+            'file_bimbingan' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+        ]);
+
+        $mahasiswa = Auth::user()->mahasiswa;
+        $topik = $mahasiswa->topikSkripsi()
+            ->where('status', 'diterima')
+            ->firstOrFail();
+
+        $filePath = null;
+        if ($request->hasFile('file_bimbingan')) {
+            $filePath = $request->file('file_bimbingan')
+                ->store('bimbingan', 'public');
+        }
+
+        $bimbingan = Bimbingan::create([
+            'topik_id' => $topik->id,
+            'dosen_id' => $request->dosen_id,
+            'jenis' => $request->jenis,
+            'pokok_bimbingan' => $request->pokok_bimbingan,
+            'pesan_mahasiswa' => $request->pesan_mahasiswa,
+            'file_bimbingan' => $filePath,
+            'status' => 'menunggu',
+            'tanggal_bimbingan' => now(),
+        ]);
+
+        // Catat history
+        BimbinganHistory::create([
+            'bimbingan_id' => $bimbingan->id,
+            'status' => 'menunggu',
+            'aksi' => 'submit',
+            'catatan' => 'Mahasiswa mengajukan bimbingan',
+            'oleh' => $mahasiswa->nama,
+        ]);
+
+        return redirect()->route('mahasiswa.bimbingan.index')
+            ->with('success', 'Bimbingan berhasil diajukan');
+    }
+}
+\end{lstlisting}
+
+\subsection{Controller Penjadwalan Otomatis}
+Implementasi fitur penjadwalan sidang otomatis oleh koordinator:
+
+\begin{lstlisting}[language=PHP, caption={JadwalOtomatisController}, label={lst:controller-jadwal}]
+<?php
+
+namespace App\Http\Controllers\Koordinator;
+
+use App\Http\Controllers\Controller;
+use App\Models\PendaftaranSidang;
+use App\Models\PelaksanaanSidang;
+use App\Models\PengujiSidang;
+use App\Models\Ruangan;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+
+class JadwalOtomatisController extends Controller
+{
+    public function generate(Request $request)
+    {
+        $request->validate([
+            'jadwal_sidang_id' => 'required|exists:jadwal_sidang,id',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+        ]);
+
+        // Ambil pendaftaran yang menunggu
+        $pendaftarans = PendaftaranSidang::where('jadwal_sidang_id', $request->jadwal_sidang_id)
+            ->where('status_koordinator', 'menunggu')
+            ->where('status_pembimbing_1', 'disetujui')
+            ->where('status_pembimbing_2', 'disetujui')
+            ->with(['topik.usulanPembimbing.dosen'])
+            ->get();
+
+        // Ambil ruangan aktif
+        $ruangans = Ruangan::where('is_active', true)->get();
+        
+        // Slot waktu (08:00 - 16:00, @1.5 jam)
+        $slots = ['08:00', '09:30', '11:00', '13:00', '14:30'];
+        
+        $scheduled = 0;
+        $currentDate = Carbon::parse($request->tanggal_mulai);
+        $endDate = Carbon::parse($request->tanggal_selesai);
+
+        foreach ($pendaftarans as $pendaftaran) {
+            // Cari slot kosong
+            $slotFound = false;
+            
+            while ($currentDate <= $endDate && !$slotFound) {
+                // Skip weekend
+                if ($currentDate->isWeekend()) {
+                    $currentDate->addDay();
+                    continue;
+                }
+
+                foreach ($ruangans as $ruangan) {
+                    foreach ($slots as $slot) {
+                        $waktu = $currentDate->copy()
+                            ->setTimeFromTimeString($slot);
+
+                        // Cek konflik ruangan
+                        $conflict = PelaksanaanSidang::where('tanggal_sidang', $waktu)
+                            ->where('tempat', 'LIKE', '%' . $ruangan->nama . '%')
+                            ->exists();
+
+                        if (!$conflict) {
+                            // Buat pelaksanaan sidang
+                            $pelaksanaan = PelaksanaanSidang::create([
+                                'pendaftaran_sidang_id' => $pendaftaran->id,
+                                'tanggal_sidang' => $waktu,
+                                'tempat' => $ruangan->nama . ' - ' . $ruangan->lokasi,
+                                'status' => 'dijadwalkan',
+                            ]);
+
+                            // Set penguji dari pembimbing
+                            $this->assignPenguji($pelaksanaan, $pendaftaran);
+
+                            // Update status pendaftaran
+                            $pendaftaran->update([
+                                'status_koordinator' => 'disetujui'
+                            ]);
+
+                            $scheduled++;
+                            $slotFound = true;
+                            break 2;
+                        }
+                    }
+                }
+                $currentDate->addDay();
+            }
+        }
+
+        return redirect()->back()
+            ->with('success', "Berhasil menjadwalkan {$scheduled} sidang");
+    }
+
+    private function assignPenguji($pelaksanaan, $pendaftaran)
+    {
+        $pembimbings = $pendaftaran->topik->usulanPembimbing()
+            ->where('status', 'diterima')
+            ->orderBy('urutan')
+            ->get();
+
+        foreach ($pembimbings as $p) {
+            PengujiSidang::create([
+                'pelaksanaan_sidang_id' => $pelaksanaan->id,
+                'dosen_id' => $p->dosen_id,
+                'role' => 'pembimbing_' . $p->urutan,
+            ]);
+        }
+    }
+}
+\end{lstlisting}
+
+% ============================================
+\section{Implementasi View}
+
+\subsection{Layout Utama}
+Sistem menggunakan Blade templating engine dengan layout berbasis komponen:
+
+\begin{lstlisting}[language=HTML, caption={Layout Utama Aplikasi}, label={lst:layout-app}]
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>{{ config('app.name', 'SISRI-BPI') }}</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" 
+          rel="stylesheet" />
+
+    <!-- Scripts -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="font-sans antialiased">
+    <div class="min-h-screen bg-gray-100">
+        <!-- Sidebar -->
+        @include('layouts.sidebar')
+
+        <!-- Page Content -->
+        <div class="lg:pl-64">
+            <!-- Top Navigation -->
+            @include('layouts.navigation')
+
+            <!-- Main Content -->
+            <main class="py-6 px-4 sm:px-6 lg:px-8">
+                <!-- Flash Messages -->
+                @if(session('success'))
+                    <x-alert type="success" :message="session('success')" />
+                @endif
+
+                @if(session('error'))
+                    <x-alert type="error" :message="session('error')" />
+                @endif
+
+                {{ $slot }}
+            </main>
+        </div>
+    </div>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @stack('scripts')
+</body>
+</html>
+\end{lstlisting}
+
+\subsection{Halaman Daftar Bimbingan}
+\begin{lstlisting}[language=HTML, caption={View Daftar Bimbingan Mahasiswa}, label={lst:view-bimbingan}]
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="text-xl font-semibold text-gray-800">
+            Bimbingan Skripsi
+        </h2>
+    </x-slot>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <!-- Header dengan tombol tambah -->
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-medium">Riwayat Bimbingan</h3>
+            <a href="{{ route('mahasiswa.bimbingan.create') }}"
+               class="bg-blue-600 hover:bg-blue-700 text-white 
+                      px-4 py-2 rounded-lg transition-colors">
+                + Ajukan Bimbingan
+            </a>
+        </div>
+
+        <!-- Tabel Bimbingan -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium 
+                                   text-gray-500 uppercase">No</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium 
+                                   text-gray-500 uppercase">Tanggal</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium 
+                                   text-gray-500 uppercase">Pembimbing</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium 
+                                   text-gray-500 uppercase">Pokok Bahasan</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium 
+                                   text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium 
+                                   text-gray-500 uppercase">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    @forelse($bimbingan as $index => $item)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 text-sm">
+                            {{ $bimbingan->firstItem() + $index }}
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            {{ $item->tanggal_bimbingan->format('d M Y') }}
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            {{ $item->dosen->nama }}
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            {{ Str::limit($item->pokok_bimbingan, 50) }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <x-status-badge :status="$item->status" />
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            <a href="{{ route('mahasiswa.bimbingan.show', $item) }}"
+                               class="text-blue-600 hover:text-blue-800">
+                                Detail
+                            </a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                            Belum ada data bimbingan
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4">
+            {{ $bimbingan->links() }}
+        </div>
+    </div>
+</x-app-layout>
+\end{lstlisting}
+
+% ============================================
+\section{Implementasi Autentikasi dan Otorisasi}
+
+\subsection{Middleware Role-Based Access Control}
+\begin{lstlisting}[language=PHP, caption={Middleware RoleMiddleware}, label={lst:middleware-role}]
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+
+class RoleMiddleware
+{
+    public function handle(Request $request, Closure $next, ...$roles)
+    {
+        if (!$request->user()) {
+            return redirect()->route('login');
+        }
+
+        if (!$request->user()->hasAnyRole($roles)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return $next($request);
+    }
+}
+\end{lstlisting}
+
+\subsection{Konfigurasi Route dengan Middleware}
+\begin{lstlisting}[language=PHP, caption={Konfigurasi Route dengan Role Middleware}, label={lst:route-middleware}]
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+// Route Mahasiswa
+Route::middleware(['auth', 'role:mahasiswa'])
+    ->prefix('mahasiswa')
+    ->name('mahasiswa.')
+    ->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])
+            ->name('dashboard');
+        Route::resource('topik', TopikController::class);
+        Route::resource('bimbingan', BimbinganController::class);
+        Route::resource('sidang', SidangController::class);
+    });
+
+// Route Dosen
+Route::middleware(['auth', 'role:dosen'])
+    ->prefix('dosen')
+    ->name('dosen.')
+    ->group(function () {
+        Route::get('/dashboard', [DosenDashboardController::class, 'index'])
+            ->name('dashboard');
+        Route::resource('bimbingan', DosenBimbinganController::class);
+        Route::resource('nilai', NilaiController::class);
+    });
+
+// Route Koordinator
+Route::middleware(['auth', 'role:koordinator'])
+    ->prefix('koordinator')
+    ->name('koordinator.')
+    ->group(function () {
+        Route::get('/dashboard', [KoordinatorDashboardController::class, 'index'])
+            ->name('dashboard');
+        Route::resource('topik', KoordinatorTopikController::class);
+        Route::post('/jadwal-otomatis', [JadwalOtomatisController::class, 'generate'])
+            ->name('jadwal.generate');
+    });
+
+// Route Admin
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+            ->name('dashboard');
+        Route::resource('users', UserController::class);
+        Route::resource('dosen', DosenController::class);
+        Route::resource('mahasiswa', MahasiswaController::class);
+    });
+\end{lstlisting}
+
+% ============================================
+\section{Implementasi Fitur Utama}
+
+\subsection{Fitur Upload File}
+\begin{lstlisting}[language=PHP, caption={Implementasi Upload File}, label={lst:upload-file}]
+<?php
+
+// Di Controller
+public function uploadProposal(Request $request)
+{
+    $request->validate([
+        'file_proposal' => 'required|file|mimes:pdf|max:5120', // Max 5MB
+    ]);
+
+    if ($request->hasFile('file_proposal')) {
+        // Hapus file lama jika ada
+        if ($this->topik->file_proposal) {
+            Storage::disk('public')->delete($this->topik->file_proposal);
+        }
+
+        // Upload file baru
+        $file = $request->file('file_proposal');
+        $filename = 'proposal_' . $this->topik->mahasiswa->nim . '_' 
+                  . time() . '.' . $file->getClientOriginalExtension();
+        
+        $path = $file->storeAs('proposals', $filename, 'public');
+
+        $this->topik->update(['file_proposal' => $path]);
+    }
+
+    return back()->with('success', 'File proposal berhasil diupload');
+}
+\end{lstlisting}
+
+\subsection{Fitur Notifikasi Real-time}
+\begin{lstlisting}[language=JavaScript, caption={Implementasi Notifikasi dengan SweetAlert2}, label={lst:notifikasi}]
+// resources/js/notifications.js
+
+// Flash message handler
+document.addEventListener('DOMContentLoaded', function() {
+    // Success notification
+    const successMsg = document.querySelector('[data-success-message]');
+    if (successMsg) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: successMsg.dataset.successMessage,
+            timer: 3000,
+            showConfirmButton: false
+        });
+    }
+
+    // Error notification
+    const errorMsg = document.querySelector('[data-error-message]');
+    if (errorMsg) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: errorMsg.dataset.errorMessage
+        });
+    }
+});
+
+// Confirm delete
+function confirmDelete(formId) {
+    Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: "Data yang dihapus tidak dapat dikembalikan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById(formId).submit();
+        }
+    });
+}
+\end{lstlisting}
+
+% ============================================
+\section{Hasil Implementasi}
+
+\subsection{Halaman Login}
+Halaman login merupakan halaman pertama yang diakses pengguna untuk masuk ke sistem. Tampilan halaman login dapat dilihat pada Gambar \ref{fig:impl-login}.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.8\textwidth]{images/login.png}}
+\caption{Implementasi Halaman Login}
+\label{fig:impl-login}
+\end{figure}
+
+\subsection{Dashboard Mahasiswa}
+Dashboard mahasiswa menampilkan ringkasan informasi terkait proses skripsi mahasiswa yang bersangkutan.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.9\textwidth]{images/dashboard-mahasiswa.png}}
+\caption{Implementasi Dashboard Mahasiswa}
+\label{fig:impl-dashboard-mhs}
+\end{figure}
+
+\subsection{Halaman Bimbingan}
+Halaman bimbingan memungkinkan mahasiswa untuk mengajukan dan memantau proses bimbingan dengan dosen pembimbing.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.9\textwidth]{images/bimbingan.png}}
+\caption{Implementasi Halaman Bimbingan}
+\label{fig:impl-bimbingan}
+\end{figure}
+
+\subsection{Halaman Penjadwalan Sidang}
+Koordinator dapat melakukan penjadwalan sidang secara otomatis melalui halaman ini.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.9\textwidth]{images/jadwal-sidang.png}}
+\caption{Implementasi Halaman Penjadwalan Sidang}
+\label{fig:impl-jadwal}
+\end{figure}
+
+\subsection{Halaman Input Nilai}
+Dosen penguji dapat memasukkan nilai sidang melalui form yang telah disediakan.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.9\textwidth]{images/input-nilai.png}}
+\caption{Implementasi Halaman Input Nilai}
+\label{fig:impl-nilai}
+\end{figure}
+
+% ============================================
+\section{Pengujian Sistem}
+
+\subsection{Pengujian Black-Box}
+Pengujian black-box dilakukan untuk memastikan fungsionalitas sistem berjalan sesuai dengan kebutuhan.
+
+\begin{table}[H]
+\centering
+\caption{Hasil Pengujian Black-Box}
+\label{tab:pengujian-blackbox}
+\begin{tabular}{|c|p{4cm}|p{4cm}|p{3cm}|c|}
+\hline
+\textbf{No} & \textbf{Skenario Pengujian} & \textbf{Hasil yang Diharapkan} & \textbf{Hasil Pengujian} & \textbf{Status} \\
+\hline
+1 & Login dengan kredensial valid & Masuk ke dashboard sesuai role & Sesuai harapan & \checkmark \\
+\hline
+2 & Login dengan kredensial invalid & Menampilkan pesan error & Sesuai harapan & \checkmark \\
+\hline
+3 & Mahasiswa mengajukan topik & Topik tersimpan dengan status menunggu & Sesuai harapan & \checkmark \\
+\hline
+4 & Koordinator menyetujui topik & Status topik berubah menjadi diterima & Sesuai harapan & \checkmark \\
+\hline
+5 & Mahasiswa mengajukan bimbingan & Bimbingan tersimpan dan notifikasi terkirim & Sesuai harapan & \checkmark \\
+\hline
+6 & Dosen merespon bimbingan & Status bimbingan terupdate & Sesuai harapan & \checkmark \\
+\hline
+7 & Koordinator generate jadwal otomatis & Jadwal sidang terbuat tanpa konflik & Sesuai harapan & \checkmark \\
+\hline
+8 & Dosen input nilai sidang & Nilai tersimpan di database & Sesuai harapan & \checkmark \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Pengujian Responsivitas}
+Sistem diuji pada berbagai ukuran layar untuk memastikan tampilan responsif.
+
+\begin{table}[H]
+\centering
+\caption{Hasil Pengujian Responsivitas}
+\label{tab:pengujian-responsif}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Device} & \textbf{Resolusi} & \textbf{Browser} & \textbf{Status} \\
+\hline
+Desktop & 1920x1080 & Chrome, Firefox & \checkmark \\
+\hline
+Laptop & 1366x768 & Chrome, Edge & \checkmark \\
+\hline
+Tablet & 768x1024 & Safari, Chrome & \checkmark \\
+\hline
+Mobile & 375x667 & Chrome, Safari & \checkmark \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Pengujian Performa}
+Pengujian performa dilakukan untuk mengukur waktu respon sistem.
+
+\begin{table}[H]
+\centering
+\caption{Hasil Pengujian Performa}
+\label{tab:pengujian-performa}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Halaman} & \textbf{Waktu Muat (ms)} & \textbf{Status} \\
+\hline
+Login & 245 & Baik \\
+\hline
+Dashboard & 312 & Baik \\
+\hline
+List Bimbingan & 287 & Baik \\
+\hline
+Form Pengajuan & 198 & Baik \\
+\hline
+Generate Jadwal Otomatis & 1245 & Cukup \\
+\hline
+\end{tabular}
+\end{table}

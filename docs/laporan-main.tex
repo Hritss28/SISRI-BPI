@@ -1,0 +1,267 @@
+% ============================================
+% SISRI-BPI Laporan Skripsi - Main Document
+% Universitas Trunojoyo Madura
+% ============================================
+
+\documentclass[12pt,a4paper]{report}
+
+% ============================================
+% PACKAGES
+% ============================================
+\usepackage[utf8]{inputenc}
+\usepackage[indonesian]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{pgf-umlsd} % untuk sequence diagram
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{indentfirst}
+\usepackage{enumitem}
+
+% ============================================
+% TikZ Libraries
+% ============================================
+\usetikzlibrary{shapes.geometric, arrows, positioning, fit, backgrounds, calc}
+
+% ============================================
+% PAGE SETUP
+% ============================================
+\geometry{
+    a4paper,
+    left=4cm,
+    right=3cm,
+    top=3cm,
+    bottom=3cm
+}
+
+% Line spacing 1.5
+\onehalfspacing
+
+% ============================================
+% HEADER & FOOTER
+% ============================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ============================================
+% CHAPTER & SECTION FORMATTING
+% ============================================
+\titleformat{\chapter}[display]
+    {\normalfont\Large\bfseries\centering}
+    {BAB \thechapter}
+    {0pt}
+    {\Large\uppercase}
+\titlespacing*{\chapter}{0pt}{-30pt}{20pt}
+
+\titleformat{\section}
+    {\normalfont\large\bfseries}
+    {\thesection}
+    {1em}
+    {}
+
+\titleformat{\subsection}
+    {\normalfont\normalsize\bfseries}
+    {\thesubsection}
+    {1em}
+    {}
+
+% ============================================
+% CODE LISTING STYLE
+% ============================================
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.97,0.97,0.97}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+    rulecolor=\color{gray!30}
+}
+\lstset{style=mystyle}
+
+% PHP Language Definition
+\lstdefinelanguage{PHP}{
+    keywords={class, function, return, if, else, elseif, foreach, for, while, do, switch, case, break, continue, public, private, protected, static, final, abstract, extends, implements, namespace, use, new, true, false, null, try, catch, throw, interface, trait},
+    keywordstyle=\color{blue}\bfseries,
+    ndkeywords={Route, Schema, DB, Auth, Request, Response, View, Model, Controller},
+    ndkeywordstyle=\color{purple}\bfseries,
+    sensitive=true,
+    comment=[l]{//},
+    morecomment=[s]{/*}{*/},
+    commentstyle=\color{codegreen}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    morestring=[b]',
+    morestring=[b]"
+}
+
+% ============================================
+% HYPERREF SETUP
+% ============================================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,
+    urlcolor=blue,
+    citecolor=black,
+}
+
+% ============================================
+% TABLE OF CONTENTS CUSTOMIZATION
+% ============================================
+\renewcommand{\contentsname}{DAFTAR ISI}
+\renewcommand{\listfigurename}{DAFTAR GAMBAR}
+\renewcommand{\listtablename}{DAFTAR TABEL}
+
+% ============================================
+% CUSTOM COMMANDS
+% ============================================
+\newcommand{\judul}{Sistem Informasi Skripsi Berbasis Web (SISRI-BPI)}
+\newcommand{\penulis}{[Nama Mahasiswa]}
+\newcommand{\nim}{[NIM]}
+\newcommand{\prodi}{Teknik Informatika}
+\newcommand{\fakultas}{Fakultas Teknik}
+\newcommand{\universitas}{Universitas Trunojoyo Madura}
+\newcommand{\tahun}{2025}
+
+% ============================================
+% DOCUMENT BEGIN
+% ============================================
+\begin{document}
+
+% ============================================
+% FRONT MATTER
+% ============================================
+\pagenumbering{roman}
+
+% Halaman Judul
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    
+    {\Large\bfseries SKRIPSI}\\[0.5cm]
+    
+    \vspace{1cm}
+    
+    {\LARGE\bfseries\judul}\\[1.5cm]
+    
+    \vspace{1cm}
+    
+    \includegraphics[width=4cm]{images/logo-utm.png}\\[1cm]
+    
+    \vspace{1cm}
+    
+    {\large Oleh:}\\[0.3cm]
+    {\large\bfseries\penulis}\\
+    {\large NIM. \nim}\\[1.5cm]
+    
+    \vspace{1cm}
+    
+    {\large\bfseries PROGRAM STUDI \MakeUppercase{\prodi}}\\
+    {\large\bfseries\MakeUppercase{\fakultas}}\\
+    {\large\bfseries\MakeUppercase{\universitas}}\\
+    {\large\bfseries\tahun}
+    
+\end{titlepage}
+
+% Daftar Isi
+\tableofcontents
+\newpage
+
+% Daftar Gambar
+\listoffigures
+\newpage
+
+% Daftar Tabel
+\listoftables
+\newpage
+
+% ============================================
+% MAIN MATTER
+% ============================================
+\pagenumbering{arabic}
+
+% Include BAB 4 - Analisis dan Perancangan
+\input{laporan-bab4-analisis-perancangan}
+
+% Include BAB 5 - Implementasi
+\input{laporan-bab5-implementasi}
+
+% ============================================
+% BACK MATTER
+% ============================================
+
+% Daftar Pustaka
+\begin{thebibliography}{99}
+\addcontentsline{toc}{chapter}{DAFTAR PUSTAKA}
+
+\bibitem{laravel}
+Laravel Documentation. (2025). \textit{Laravel - The PHP Framework For Web Artisans}. Retrieved from https://laravel.com/docs
+
+\bibitem{tailwind}
+Tailwind CSS. (2025). \textit{Tailwind CSS - Rapidly build modern websites without ever leaving your HTML}. Retrieved from https://tailwindcss.com/docs
+
+\bibitem{pressman}
+Pressman, R. S., \& Maxim, B. R. (2020). \textit{Software Engineering: A Practitioner's Approach} (9th ed.). McGraw-Hill Education.
+
+\bibitem{sommerville}
+Sommerville, I. (2016). \textit{Software Engineering} (10th ed.). Pearson Education.
+
+\bibitem{spatie}
+Spatie. (2025). \textit{Laravel Permission}. Retrieved from https://spatie.be/docs/laravel-permission
+
+\bibitem{alpine}
+Alpine.js. (2025). \textit{Alpine.js - Your new, lightweight, JavaScript framework}. Retrieved from https://alpinejs.dev/
+
+\end{thebibliography}
+
+% ============================================
+% LAMPIRAN
+% ============================================
+\appendix
+\chapter{LAMPIRAN}
+
+\section{Kode Program Lengkap}
+Kode program lengkap dapat diakses melalui repository GitHub:\\
+\url{https://github.com/AchmadLutfi196/SISRI-BPI}
+
+\section{Dokumentasi API}
+[Dokumentasi API sistem jika ada]
+
+\section{Manual Pengguna}
+[Panduan penggunaan sistem untuk setiap role pengguna]
+
+\end{document}
