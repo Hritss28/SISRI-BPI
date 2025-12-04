@@ -450,6 +450,11 @@ class PendaftaranController extends Controller
                 foreach ($timeSlots as $time) {
                     $datetime = $currentDate->format('Y-m-d') . ' ' . $time . ':00';
                     
+                    // Check if pembimbing are available at this datetime
+                    if (!$this->arePembimbingAvailable($pembimbingIds, $datetime)) {
+                        continue; // Pembimbing busy, try next slot
+                    }
+                    
                     // Find available room for this datetime
                     $availableRoom = $this->findAvailableRoomForDatetime($rooms, $datetime);
                     
@@ -477,6 +482,26 @@ class PendaftaranController extends Controller
     }
 
     /**
+     * Check if all pembimbing are available at a specific datetime
+     */
+    private function arePembimbingAvailable($pembimbingIds, $datetime)
+    {
+        if (empty($pembimbingIds)) {
+            return true;
+        }
+        
+        // Check if any pembimbing is already assigned to another sidang at this datetime
+        $busyPembimbing = PengujiSidang::whereIn('dosen_id', $pembimbingIds)
+            ->whereHas('pelaksanaanSidang', function ($q) use ($datetime) {
+                $q->where('tanggal_sidang', $datetime)
+                  ->whereIn('status', ['dijadwalkan', 'selesai']);
+            })
+            ->exists();
+        
+        return !$busyPembimbing;
+    }
+
+    /**
      * Find available room from database for a specific datetime
      */
     private function findAvailableRoomForDatetime($rooms, $datetime)
@@ -484,7 +509,7 @@ class PendaftaranController extends Controller
         foreach ($rooms as $room) {
             $isUsed = PelaksanaanSidang::where('tanggal_sidang', $datetime)
                 ->where('tempat', $room->nama)
-                ->where('status', '!=', 'selesai')
+                ->whereIn('status', ['dijadwalkan', 'selesai'])
                 ->exists();
             
             if (!$isUsed) {
@@ -509,7 +534,7 @@ class PendaftaranController extends Controller
         // Get dosen IDs who are busy at this datetime (already assigned as penguji/pembimbing)
         $busyDosenIds = PengujiSidang::whereHas('pelaksanaanSidang', function ($q) use ($datetime) {
             $q->where('tanggal_sidang', $datetime)
-              ->where('status', '!=', 'selesai');
+              ->whereIn('status', ['dijadwalkan', 'selesai']);
         })->pluck('dosen_id')->toArray();
         
         // Filter out busy dosen

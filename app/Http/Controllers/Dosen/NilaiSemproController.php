@@ -24,13 +24,12 @@ class NilaiSemproController extends Controller
             return redirect()->route('dashboard')->with('error', 'Anda tidak terdaftar sebagai dosen.');
         }
 
-        // Get penugasan as penguji for seminar_proposal only (hanya penguji, bukan pembimbing)
+        // Get penugasan as penguji/pembimbing for seminar_proposal
         $penugasan = PengujiSidang::with([
             'pelaksanaanSidang.pendaftaranSidang.topik.mahasiswa.user',
             'pelaksanaanSidang.pendaftaranSidang.topik'
         ])
             ->where('dosen_id', $dosen->id)
-            ->where('role', 'like', 'penguji_%') // Hanya penguji_1, penguji_2, penguji_3
             ->whereHas('pelaksanaanSidang.pendaftaranSidang', function ($query) {
                 $query->where('jenis', 'seminar_proposal');
             })
@@ -59,14 +58,13 @@ class NilaiSemproController extends Controller
             return redirect()->route('dosen.nilai-sempro.index')->with('error', 'Pelaksanaan ini bukan seminar proposal.');
         }
 
-        // Get penugasan for this dosen (hanya penguji, bukan pembimbing)
+        // Get penugasan for this dosen (penguji atau pembimbing)
         $penugasan = PengujiSidang::where('pelaksanaan_sidang_id', $pelaksanaan->id)
             ->where('dosen_id', $dosen->id)
-            ->where('role', 'like', 'penguji_%') // Hanya penguji_1, penguji_2, penguji_3
             ->first();
 
         if (!$penugasan) {
-            return redirect()->route('dosen.nilai-sempro.index')->with('error', 'Anda tidak ditugaskan sebagai penguji untuk sempro ini. Pembimbing tidak dapat memberikan nilai.');
+            return redirect()->route('dosen.nilai-sempro.index')->with('error', 'Anda tidak ditugaskan untuk sempro ini.');
         }
 
         // Check existing nilai - using pelaksanaan_sidang_id + dosen_id + jenis_nilai
@@ -95,14 +93,13 @@ class NilaiSemproController extends Controller
             return redirect()->route('dosen.nilai-sempro.index')->with('error', 'Pelaksanaan ini bukan seminar proposal.');
         }
 
-        // Get penugasan (hanya penguji, bukan pembimbing)
+        // Get penugasan (penguji atau pembimbing)
         $penugasan = PengujiSidang::where('pelaksanaan_sidang_id', $pelaksanaan->id)
             ->where('dosen_id', $dosen->id)
-            ->where('role', 'like', 'penguji_%') // Hanya penguji_1, penguji_2, penguji_3
             ->first();
 
         if (!$penugasan) {
-            return redirect()->route('dosen.nilai-sempro.index')->with('error', 'Anda tidak ditugaskan sebagai penguji untuk sempro ini. Pembimbing tidak dapat memberikan nilai.');
+            return redirect()->route('dosen.nilai-sempro.index')->with('error', 'Anda tidak ditugaskan untuk sempro ini.');
         }
 
         $request->validate([

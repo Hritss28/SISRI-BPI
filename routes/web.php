@@ -26,6 +26,7 @@ use App\Http\Controllers\Dosen\NilaiSemproController;
 use App\Http\Controllers\Dosen\NilaiSidangController;
 use App\Http\Controllers\Dosen\PersetujuanSidangController;
 use App\Http\Controllers\Dosen\JadwalUjianController;
+use App\Http\Controllers\Dosen\BeritaAcaraController;
 
 // Koordinator Controllers
 use App\Http\Controllers\Koordinator\DashboardController as KoordinatorDashboardController;
@@ -162,6 +163,12 @@ Route::middleware(['auth', 'role:dosen|koordinator'])->prefix('dosen')->name('do
     Route::get('/jadwal-ujian/sempro', [JadwalUjianController::class, 'sempro'])->name('jadwal-ujian.sempro');
     Route::get('/jadwal-ujian/sidang', [JadwalUjianController::class, 'sidang'])->name('jadwal-ujian.sidang');
     Route::get('/jadwal-ujian/{pelaksanaan}', [JadwalUjianController::class, 'show'])->name('jadwal-ujian.show');
+    
+    // Berita Acara
+    Route::get('/berita-acara', [BeritaAcaraController::class, 'index'])->name('berita-acara.index');
+    Route::get('/berita-acara/{pelaksanaan}', [BeritaAcaraController::class, 'show'])->name('berita-acara.show');
+    Route::post('/berita-acara/{pelaksanaan}/tanda-tangan', [BeritaAcaraController::class, 'tandaTangan'])->name('berita-acara.tanda-tangan');
+    Route::get('/berita-acara/{pelaksanaan}/download-pdf', [BeritaAcaraController::class, 'downloadPdf'])->name('berita-acara.download-pdf');
 });
 
 // ==================== KOORDINATOR ROUTES ====================
