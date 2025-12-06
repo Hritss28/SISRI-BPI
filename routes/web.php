@@ -136,6 +136,7 @@ Route::middleware(['auth', 'role:dosen|koordinator'])->prefix('dosen')->name('do
     Route::get('/validasi-usulan/{usulan}', [ValidasiUsulanController::class, 'show'])->name('validasi-usulan.show');
     Route::post('/validasi-usulan/{usulan}/approve', [ValidasiUsulanController::class, 'approve'])->name('validasi-usulan.approve');
     Route::post('/validasi-usulan/{usulan}/reject', [ValidasiUsulanController::class, 'reject'])->name('validasi-usulan.reject');
+    Route::get('/validasi-usulan/{usulan}/download-proposal', [ValidasiUsulanController::class, 'downloadProposal'])->name('validasi-usulan.download-proposal');
     
     // Bimbingan
     Route::get('/bimbingan', [DosenBimbinganController::class, 'index'])->name('bimbingan.index');

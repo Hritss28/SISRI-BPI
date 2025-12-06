@@ -460,6 +460,42 @@ class DatabaseSeeder extends Seeder
             'status' => 'menunggu',
             'catatan' => null,
         ]);
+
+        // Topik untuk Ahmad - Status DITOLAK (untuk testing ganti pembimbing)
+        // Pembimbing 1 menerima, Pembimbing 2 menolak
+        $mahasiswaAhmad = Mahasiswa::where('nim', '2020001')->first();
+        $dosenDitolak = Dosen::where('nip', '19750512200501')->first(); // Adhi Kusnadi (akan menolak)
+        
+        if ($mahasiswaAhmad && $dosenDitolak) {
+            $topikAhmad = TopikSkripsi::create([
+                'mahasiswa_id' => $mahasiswaAhmad->id,
+                'bidang_minat_id' => $bidangMinatWeb->id,
+                'judul' => 'Sistem Manajemen Inventory Berbasis Cloud Computing',
+                'file_proposal' => null,
+                'status' => 'ditolak',
+                'catatan' => 'Usulan pembimbing 2 menolak. Silakan pilih pembimbing pengganti.',
+            ]);
+            
+            // Pembimbing 1 - DITERIMA
+            UsulanPembimbing::create([
+                'topik_id' => $topikAhmad->id,
+                'dosen_id' => $dosenPembimbing1->id,
+                'urutan' => 1,
+                'status' => 'diterima',
+                'catatan' => 'Topik menarik, saya bersedia membimbing.',
+                'tanggal_respon' => now()->subDays(2),
+            ]);
+            
+            // Pembimbing 2 - DITOLAK
+            UsulanPembimbing::create([
+                'topik_id' => $topikAhmad->id,
+                'dosen_id' => $dosenDitolak->id,
+                'urutan' => 2,
+                'status' => 'ditolak',
+                'catatan' => 'Maaf, saat ini kuota pembimbing saya sudah penuh. Silakan cari pembimbing lain yang sesuai dengan bidang cloud computing.',
+                'tanggal_respon' => now()->subDays(1),
+            ]);
+        }
     }
     
     private function createSampleSidang(array $units): void
